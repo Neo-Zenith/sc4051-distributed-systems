@@ -3,7 +3,13 @@
 int reader(char *pathName, int offset, int numBytes) {
     FILE *file;
 
+    // Open file
     file = fopen(pathName, "r");
+    // Check if file exists
+    if (file == NULL) {
+        printf("Error: File not found\n");
+        return(1);
+    }
     fseek(file, offset, SEEK_SET);
     
     int i = 0;

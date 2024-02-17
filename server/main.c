@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 int main() {
-    char *filePath = "./data.txt";
+    char *filePath = "./test.txt";
     reader(filePath, 6, 15);
     return 0;
 }
