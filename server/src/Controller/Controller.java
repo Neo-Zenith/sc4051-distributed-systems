@@ -1,11 +1,11 @@
 package src.Controller;
 
-import src.Marshaller.ClientInput;
+import src.Marshaller.ClientPacket;
 import src.Services.Service1;
 import src.Services.Service2;
 
 public class Controller {
-    public static void processRequest(ClientInput clientInput) {
+    public static void processRequest(ClientPacket clientInput) {
         int serviceID = clientInput.getServiceID();
         String filePath;
         int offset;
@@ -14,15 +14,15 @@ public class Controller {
         switch (serviceID) {
             case 1:
                 filePath = clientInput.getFilePath();
-                offset = clientInput.getOffset();
-                numBytes = clientInput.getNumBytes();
+                offset = clientInput.getClientPayload().getOffset();
+                numBytes = clientInput.getClientPayload().getNumBytes();
                 Service1 service1 = new Service1(filePath, offset, numBytes);
                 String content = service1.readFromFile();
                 break;
             case 2:
                 filePath = clientInput.getFilePath();
-                offset = clientInput.getOffset();
-                byte[] bytesToInsert = clientInput.getBytesToInsert();
+                offset = clientInput.getClientPayload().getOffset();
+                byte[] bytesToInsert = clientInput.getClientPayload().getBytesToInsert();
                 Service2 service2 = new Service2(filePath, offset, bytesToInsert);
                 break;
             default:

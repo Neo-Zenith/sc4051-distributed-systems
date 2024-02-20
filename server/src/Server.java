@@ -5,7 +5,7 @@ import java.net.*;
 
 import src.Comms.ClientDetails;
 import src.Controller.Controller;
-import src.Marshaller.ClientInput;
+import src.Marshaller.ClientPacket;
 import src.Marshaller.Marshaller;
 
 public class Server {
@@ -25,20 +25,46 @@ public class Server {
     }
 
     public static void start() {
+        // Initial buffer window size
+        int bufferWindowSize = 12;
         try {
             while (true) {
+                System.out.println("Waiting for response...");
                 // buffer for storing the received request from client
-                byte[] buffer = new byte[512];
+                // start at 8 bytes.
+                byte[] buffer = new byte[bufferWindowSize];
                 // DatagramPack encapsulates the request message sent by client (to be stored in buffer)
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-                System.out.println("Waiting for response...");
                 socket.receive(request); 
+                System.out.println("Received request from client");
 
                 // unmarshal the request
-                ClientInput clientInput = Marshaller.unmarshalClientInput(buffer);
-                
-                // hand over to controller for processing
-                Controller.processRequest(clientInput);
+                ClientPacket clientPacket = Marshaller.unmarshalClientPacket(buffer);
+
+                if (clientPacket.getServiceID() == 0) {
+                    // if request ID is 0, then it is the first packet
+                    // set the buffer window size and listen for next packet
+                    System.out.println("================ Header packet ================");
+                    System.out.println("Request ID: " + clientPacket.getRequestID());
+                    System.out.println("Service ID: " + clientPacket.getServiceID());
+                    System.out.println("Request Length: " + clientPacket.getRequestLength());
+                    bufferWindowSize = clientPacket.getRequestLength();
+                    System.out.println("Buffer window size set to " + bufferWindowSize);
+                    byte[] replyBuffer = new byte["OK".getBytes().length];
+                    replyBuffer = "OK".getBytes();
+                    Server.sendReply(request, replyBuffer);
+                    System.out.println("===============================================");
+                } else {
+                    // if request ID is not 0, then it is the second packet
+                    // need to get the rest of the data
+                    System.out.println("================ Data packet ================");
+                    buffer = new byte[clientPacket.getRequestLength()];
+                    request = new DatagramPacket(buffer, buffer.length);
+                    socket.receive(request);
+                    clientPacket = Marshaller.unmarshalClientPacket(buffer);
+                    Controller.processRequest(clientPacket);
+                    System.out.println("===============================================");
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

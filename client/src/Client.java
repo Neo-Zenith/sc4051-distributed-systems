@@ -1,20 +1,37 @@
 package src;
 
-/**
-Name: Lee Juin
-Group: A52
-IP Address: 172.21.144.254
- */
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
 
 public class Client {
     static int port = 2222;   // port for QOTD protocol
     static String SERVER = "localhost";    // lab server address
-    static String payload = "LeeJuin, A52, ";   // content to be sent over to the server
+    static String payload = "1050";   // content to be sent over to the server
+
+    public static byte[] marshal(int x){
+        return new byte[]{
+          (byte)(x >> 24),
+          (byte)(x >> 16),
+          (byte)(x >> 8),
+          (byte)(x >> 0)
+        };
+    }
+
+    public static byte[] joinByteArray(byte[] a, int b) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            outputStream.write(a);
+            outputStream.write(marshal(b));
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();    
+            return null;
+        }
+    }
 
     public static void main(String[] args) {
         // initialize the socket, binding of socket to server will be done later
@@ -32,10 +49,10 @@ public class Client {
         }
 
         try {
-            // pre-process the content to be sent over by including the client IP address
-            String content = payload + InetAddress.getLocalHost().getHostAddress();
-            byte[] buffer = content.getBytes("UTF-8");  // convert into bytes
-            System.out.println("Content to send: " + content);
+            byte[] buffer = marshal(1);
+            buffer = joinByteArray(buffer, 33);
+            buffer = joinByteArray(buffer, 50);
+            System.out.println("Content to send: " + buffer);
 
             // creates a DatagramPacket that encapsulates the message to be sent (found in buffer)
             DatagramPacket request = new DatagramPacket(buffer, buffer.length);
