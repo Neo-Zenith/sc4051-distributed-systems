@@ -1,4 +1,5 @@
 package src;
+
 import java.io.IOException;
 import java.net.*;
 
@@ -15,8 +16,7 @@ public class Server {
     public static void main(String[] args) {
         try {
             socket = new DatagramSocket(port);
-        }
-        catch (SocketException e) {
+        } catch (SocketException e) {
             e.printStackTrace();
             System.exit(-1);
         }
@@ -25,23 +25,25 @@ public class Server {
     }
 
     public static void start() {
-        // Initial buffer window size
+        // Initial buffer window size =
         int bufferWindowSize = 12;
         try {
             while (true) {
                 System.out.println("Waiting for response...");
                 // buffer for storing the received request from client
-                // start at 8 bytes.
+                // start at 12 bytes
                 byte[] buffer = new byte[bufferWindowSize];
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-                socket.receive(request); 
-                System.out.println("Received content from client");
+                socket.receive(request);
+                ClientDetails clientDetails = Server.getClientDetails(request);
+                System.out.println(
+                        "Received content from client " + clientDetails.getAddress() + ":" + clientDetails.getPort());
 
                 // unmarshal the request
                 ClientPacket clientPacket = Marshaller.unmarshalClientPacket(buffer);
 
                 if (clientPacket.getServiceID() == 0) {
-                    // if request ID is 0, then it is the first packet
+                    // if service ID is 0, then it is the first packet
                     // set the buffer window size and listen for next packet
                     System.out.println("================ Header packet ================");
                     System.out.println("Request ID: " + clientPacket.getRequestID());
@@ -52,7 +54,7 @@ public class Server {
                     Controller.processRequest(request, clientPacket);
                     System.out.println("===============================================");
                 } else {
-                    // if request ID is not 0, then it is the data packet
+                    // if service ID is not 0, then it is the data packet
                     // process the request
                     System.out.println("================ Data packet ================");
                     System.out.println("Request ID: " + clientPacket.getRequestID());
@@ -69,7 +71,8 @@ public class Server {
 
     /**
      * Get the client details from the request
-     * @param request   DatagramPacket encapsulating the request message
+     * 
+     * @param request DatagramPacket encapsulating the request message
      * @return ClientDetails object containing the client's address and port
      */
     public static ClientDetails getClientDetails(DatagramPacket request) {
@@ -80,14 +83,17 @@ public class Server {
 
     /**
      * Send an acknowledgement to the client
-     * @param clientDetails ClientDetails object containing the client's address and port
+     * 
+     * @param clientDetails ClientDetails object containing the client's address and
+     *                      port
      * @param replyBuffer   Buffer containing the request ID as acknowledgement
      */
     public static void sendReply(DatagramPacket request, byte[] replyBuffer) {
         try {
             System.out.println("-----------------------------");
             ClientDetails clientDetails = Server.getClientDetails(request);
-            DatagramPacket reply = new DatagramPacket(replyBuffer, replyBuffer.length, clientDetails.getAddress(), clientDetails.getPort());
+            DatagramPacket reply = new DatagramPacket(replyBuffer, replyBuffer.length, clientDetails.getAddress(),
+                    clientDetails.getPort());
             socket.send(reply);
             System.out.println("Acknowledgement sent");
         } catch (IOException e) {
@@ -99,7 +105,8 @@ public class Server {
         try {
             System.out.println("-----------------------------");
             ClientDetails clientDetails = Server.getClientDetails(request);
-            DatagramPacket header = new DatagramPacket(headerBuffer, headerBuffer.length, clientDetails.getAddress(), clientDetails.getPort());
+            DatagramPacket header = new DatagramPacket(headerBuffer, headerBuffer.length, clientDetails.getAddress(),
+                    clientDetails.getPort());
             socket.send(header);
             System.out.println("Header sent");
             // ACK
@@ -107,7 +114,8 @@ public class Server {
             socket.receive(ack);
             System.out.println("ACK received");
 
-            DatagramPacket data = new DatagramPacket(dataBuffer, dataBuffer.length, clientDetails.getAddress(), clientDetails.getPort());
+            DatagramPacket data = new DatagramPacket(dataBuffer, dataBuffer.length, clientDetails.getAddress(),
+                    clientDetails.getPort());
             socket.send(data);
             System.out.println("Data sent");
             // ACK

@@ -16,9 +16,10 @@ public class Marshaller {
                 return new ClientPacket(requestID, requestLength);
         }
     }
-    
+
     /**
      * Obtain the request ID by left-shifting the first 4 bytes of the input
+     * 
      * @param input
      * @return
      */
@@ -28,10 +29,11 @@ public class Marshaller {
     }
 
     /**
-     * Obtain the service requested by left-shifting the 
+     * Obtain the service requested by left-shifting the
      * next 4 bytes of the input
-     * @param input     byte array containing the request
-     * @return          service number
+     * 
+     * @param input byte array containing the request
+     * @return service number
      */
     public static int unmarshalServiceID(byte[] input) {
         // Convert first 4 bytes into service number
@@ -42,6 +44,7 @@ public class Marshaller {
      * Obtain the length of the request by left-shifting
      * the next 4 bytes of the input
      * This length is for next packet
+     * 
      * @param input
      * @return
      */
@@ -55,9 +58,10 @@ public class Marshaller {
      * Service 1 will have a file path, offset and number of bytes to read
      * The corresponding fields are string, int and int respectively
      * String is variable length, the rest are fixed length
-     * @param requestID    request ID
-     * @param input    byte array containing the request
-     * @return          InputFormat object containing the request details for Service 1
+     * 
+     * @param requestID request ID
+     * @param input     byte array containing the request
+     * @return InputFormat object containing the request details for Service 1
      */
     public static ClientPacket unmarshalService1(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
@@ -90,9 +94,10 @@ public class Marshaller {
      * Service 2 will have a file path, offset and bytes to insert
      * The corresponding fields are string, int and byte array respectively
      * String is variable length, the rest are fixed length
-     * @param requestID    request ID
-     * @param input    byte array containing the request
-     * @return          InputFormat object containing the request details for Service 2
+     * 
+     * @param requestID request ID
+     * @param input     byte array containing the request
+     * @return InputFormat object containing the request details for Service 2
      */
     public static ClientPacket unmarshalService2(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
@@ -127,25 +132,26 @@ public class Marshaller {
     }
 
     public static int unmarshalInt(byte[] b, int startIndex) {
-        return ((b[startIndex] & 0xFF) << 24) | ((b[startIndex + 1] & 0xFF) << 16) | ((b[startIndex + 2] & 0xFF) << 8) | (b[startIndex + 3] & 0xFF);
+        return ((b[startIndex] & 0xFF) << 24) | ((b[startIndex + 1] & 0xFF) << 16) | ((b[startIndex + 2] & 0xFF) << 8)
+                | (b[startIndex + 3] & 0xFF);
     }
 
     public static String unmarshalString(byte[] b, int startIndex, int length) {
         char[] c = new char[length];
-        for(int i = startIndex; i < startIndex + length; i++) {
+        for (int i = startIndex; i < startIndex + length; i++) {
             c[i - startIndex] = (char) (b[i]);
         }
         return new String(c);
     }
 
-    // right-shift the integer by 24, 16, 8 and 0 bits respectively 
+    // right-shift the integer by 24, 16, 8 and 0 bits respectively
     public static byte[] marshal(int x) {
-        return new byte[]{ (byte)(x >> 24), (byte)(x >> 16), (byte)(x >> 8), (byte)(x >> 0)};
+        return new byte[] { (byte) (x >> 24), (byte) (x >> 16), (byte) (x >> 8), (byte) (x >> 0) };
     }
 
     public static byte[] marshal(String s) {
         byte[] result = new byte[s.length()];
-        for (int i = 0; i < s.length(); i ++) {
+        for (int i = 0; i < s.length(); i++) {
             result[i] = (byte) s.charAt(i);
         }
         return result;
@@ -165,5 +171,6 @@ public class Marshaller {
         System.arraycopy(byteArray, 0, newByteArray, 0, byteArray.length);
         System.arraycopy(stringBytes, 0, newByteArray, byteArray.length, stringBytes.length);
         return newByteArray;
+
     }
 }
