@@ -1,25 +1,29 @@
+#ifndef CACHE_H
+#define CACHE_H
+
 #include <chrono>
 #include <string>
 #include <unordered_map>
 
-using namespace std;
-
 struct CachedResponse {
-    string content;
-    chrono::time_point<chrono::system_clock> expirationTime;
+    std::string content;
+    std::chrono::time_point<std::chrono::steady_clock> expirationTime;
 };
 
 class Cache {
    public:
     Cache(int freshnessInterval);
-    CachedResponse* checkCache(const string& path, int offset, int numBytes);
-    void insertIntoCache(const string& path, int offset, int numBytes,
-                         const string& content);
-    void removeFromCache(const string& path, int offset, int numBytes);
+    CachedResponse* checkCache(const std::string& path, int offset,
+                               int numBytes);
+    void insertIntoCache(const std::string& path, int offset, int numBytes,
+                         const std::string& content);
+    void removeFromCache(const std::string& path, int offset, int numBytes);
 
    private:
-    unordered_map<string, CachedResponse> cache;
+    std::unordered_map<std::string, CachedResponse> cache;
     int freshnessInterval;  // period to keep response in cache (in mins)
 
-    string generateHash(const string& path, int offset, int numBytes);
+    std::string generateHash(const std::string& path, int offset, int numBytes);
 };
+
+#endif  // CACHE_H

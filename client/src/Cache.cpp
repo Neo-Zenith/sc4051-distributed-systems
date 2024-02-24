@@ -1,38 +1,38 @@
 #include "Cache.h"
 
-using namespace std;
-
 Cache::Cache(int freshnessInterval) : freshnessInterval(freshnessInterval) {}
 
-CachedResponse* Cache::checkCache(const string& path, int offset,
+CachedResponse* Cache::checkCache(const std::string& path, int offset,
                                   int numBytes) {
-    string hash = generateHash(path, offset, numBytes);
+    std::string hash = generateHash(path, offset, numBytes);
     auto it = cache.find(hash);
     if (it == cache.end()) {
         return nullptr;
     }
 
     // expired
-    if (chrono::system_clock::now() > it->second.expirationTime) {
+    if (std::chrono::steady_clock::now() > it->second.expirationTime) {
         return nullptr;
     }
 
     return &(it->second);
 }
 
-void Cache::insertIntoCache(const string& path, int offset, int numBytes,
-                            const string& content) {
-    string hash = generateHash(path, offset, numBytes);
-    CachedResponse response = {content, chrono::system_clock::now() +
-                                            chrono::minutes(freshnessInterval)};
+void Cache::insertIntoCache(const std::string& path, int offset, int numBytes,
+                            const std::string& content) {
+    std::string hash = generateHash(path, offset, numBytes);
+    CachedResponse response = {content,
+                               std::chrono::steady_clock::now() +
+                                   std::chrono::minutes(freshnessInterval)};
     cache[hash] = response;
 }
 
-void Cache::removeFromCache(const string& path, int offset, int numBytes) {
-    string hash = generateHash(path, offset, numBytes);
+void Cache::removeFromCache(const std::string& path, int offset, int numBytes) {
+    std::string hash = generateHash(path, offset, numBytes);
     cache.erase(hash);
 }
 
-string Cache::generateHash(const string& path, int offset, int numBytes) {
-    return path + to_string(offset) + to_string(numBytes);
+std::string Cache::generateHash(const std::string& path, int offset,
+                                int numBytes) {
+    return path + std::to_string(offset) + std::to_string(numBytes);
 }

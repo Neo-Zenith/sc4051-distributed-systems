@@ -1,5 +1,5 @@
-#ifndef CLIENTPACKET_H
-#define CLIENTPACKET_H
+#ifndef CLIENT_PACKET_H
+#define CLIENT_PACKET_H
 
 #include <string>
 
@@ -29,4 +29,4 @@ class ClientPacket {
     void setPayload(ClientPayload* payload);
 };
 
-#endif
+#endif  // CLIENT_PACKET_H

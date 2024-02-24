@@ -1,7 +1,5 @@
 #include "ClientPacket.h"
 
-#include "ClientPayload.h"
-
 // Constructor
 ClientPacket::ClientPacket(int requestId, int serviceId,
                            const std::string& filepath, ClientPayload* payload)

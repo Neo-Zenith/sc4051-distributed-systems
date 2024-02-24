@@ -1,12 +1,13 @@
 #include "ClientPayload.h"
 
 // Constructor
+ClientPayload::ClientPayload() {}
+ClientPayload::ClientPayload(int monitorInterval)
+    : monitorInterval(monitorInterval) {}
 ClientPayload::ClientPayload(int offset, int numBytes)
     : offset(offset), numBytes(numBytes) {}
 ClientPayload::ClientPayload(int offset, const std::string& input)
     : offset(offset), input(input) {}
-ClientPayload::ClientPayload(int monitorInterval)
-    : monitorInterval(monitorInterval) {}
 
 // Getters
 int ClientPayload::getOffset() const { return offset; }
