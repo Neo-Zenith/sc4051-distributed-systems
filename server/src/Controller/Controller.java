@@ -2,12 +2,19 @@ package src.Controller;
 import java.net.*;
 
 import src.Server;
+import src.Comms.ClientDetails;
 import src.Marshaller.ClientPacket;
 import src.Marshaller.Marshaller;
 import src.Services.Service1;
 import src.Services.Service2;
 
 public class Controller {
+    /**
+     * Process the request from the client
+     * 
+     * @param request     The request packet
+     * @param clientInput The unmarshalled client packet
+     */
     public static void processRequest(DatagramPacket request, ClientPacket clientInput) {
         int serviceID = clientInput.getServiceID();
         String filePath;
@@ -19,6 +26,7 @@ public class Controller {
                 filePath = clientInput.getFilePath();
                 offset = clientInput.getClientPayload().getOffset();
                 numBytes = clientInput.getClientPayload().getNumBytes();
+                System.out.println("--------------------------------");
                 System.out.println("Service: Read from file");
                 System.out.println("File path: " + filePath);
                 System.out.println("Offset: " + offset);
@@ -26,6 +34,7 @@ public class Controller {
                 Service1 service1 = new Service1(filePath, offset, numBytes);
                 String content = service1.readFromFile();
                 System.out.println("Content: " + content);
+                System.out.println("--------------------------------");
                 if (content == null) {
                     content = "Error reading file";
                     Controller.sendService1Response(request, 0, content);
@@ -41,32 +50,27 @@ public class Controller {
                 Controller.sendService2Response();
                 break;
             default:
-                // Default is to send an acknowledgement
-                Controller.sendAcknowledgement(request, clientInput.getRequestID());
                 break;
         }
     }
 
-    public static void sendAcknowledgement(DatagramPacket request, int requestID) {
-        byte[] replyBuffer = Marshaller.marshal(requestID);
-        // send the reply
-        Server.sendReply(request, replyBuffer);
-    }
-
+    /**
+     * Marshal the response before sending it to the client
+     * 
+     * @param request   The request packet
+     * @param status    The status of the response (0 = error, 1 = success)
+     * @param content   The content of the response to be marshalled
+     */
     public static void sendService1Response(DatagramPacket request, int status, String content) {
-        int responseID = Server.getResponseID();
-
-        // Header packet
-        int responseLength = 8 + content.length();
-        byte[] headerBuffer = Marshaller.marshal(responseID);
-        headerBuffer = Marshaller.appendInt(headerBuffer, responseLength);
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int responseID = Server.getRequests().get(clientDetails);
 
         // Data packet
         byte[] dataBuffer = Marshaller.marshal(responseID);
         dataBuffer = Marshaller.appendInt(dataBuffer, status);
         dataBuffer = Marshaller.appendString(dataBuffer, content);
 
-        Server.sendReply(request, headerBuffer, dataBuffer);
+        Server.sendReply(request, dataBuffer);
     }
 
     public static void sendService2Response() {

@@ -2,6 +2,7 @@ package src;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.HashMap;
 
 import src.Comms.ClientDetails;
 import src.Controller.Controller;
@@ -9,11 +10,13 @@ import src.Marshaller.ClientPacket;
 import src.Marshaller.Marshaller;
 
 public class Server {
-    static DatagramSocket socket = null; // initialise the server socket
-    static int port = 2222;
-    static int responseID = -1;
+    private static DatagramSocket socket = null; // Initialise the server socket
+    private static int port = 2222;
+    // A map of client to their latest request ID
+    private static HashMap<ClientDetails, Integer> requests = new HashMap<ClientDetails, Integer>();
 
     public static void main(String[] args) {
+        // Creates the socket for the server
         try {
             socket = new DatagramSocket(port);
         } catch (SocketException e) {
@@ -24,43 +27,28 @@ public class Server {
         Server.start();
     }
 
+    /**
+     * Start the server
+     */
     public static void start() {
-        // Initial buffer window size =
-        int bufferWindowSize = 12;
         try {
             while (true) {
                 System.out.println("Waiting for response...");
-                // buffer for storing the received request from client
-                // start at 12 bytes
-                byte[] buffer = new byte[bufferWindowSize];
+                // Buffer to store the request from the client
+                // Assume buffer never overflows, so set to MAX
+                byte[] buffer = new byte[Integer.MAX_VALUE];
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                 socket.receive(request);
                 ClientDetails clientDetails = Server.getClientDetails(request);
                 System.out.println(
                         "Received content from client " + clientDetails.getAddress() + ":" + clientDetails.getPort());
 
-                // unmarshal the request
+                // Unmarshal the request
                 ClientPacket clientPacket = Marshaller.unmarshalClientPacket(buffer);
-
-                if (clientPacket.getServiceID() == 0) {
-                    // if service ID is 0, then it is the first packet
-                    // set the buffer window size and listen for next packet
-                    System.out.println("================ Header packet ================");
-                    System.out.println("Request ID: " + clientPacket.getRequestID());
-                    System.out.println("Service ID: " + clientPacket.getServiceID());
-                    System.out.println("Request Length: " + clientPacket.getRequestLength());
-                    bufferWindowSize = clientPacket.getRequestLength();
-                    System.out.println("Buffer window size set to " + bufferWindowSize);
-                    Controller.processRequest(request, clientPacket);
-                    System.out.println("===============================================");
-                } else {
-                    // if service ID is not 0, then it is the data packet
-                    // process the request
-                    System.out.println("================ Data packet ================");
-                    System.out.println("Request ID: " + clientPacket.getRequestID());
-                    Controller.processRequest(request, clientPacket);
-                    System.out.println("===============================================");
-                }
+                System.out.println("================ Data packet ================");
+                System.out.println("Request ID: " + clientPacket.getRequestID());
+                Controller.processRequest(request, clientPacket);
+                System.out.println("=============================================");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,11 +70,11 @@ public class Server {
     }
 
     /**
-     * Send an acknowledgement to the client
+     * Send a response to the client
      * 
      * @param clientDetails ClientDetails object containing the client's address and
      *                      port
-     * @param replyBuffer   Buffer containing the request ID as acknowledgement
+     * @param replyBuffer   Buffer containing the response data
      */
     public static void sendReply(DatagramPacket request, byte[] replyBuffer) {
         try {
@@ -101,32 +89,33 @@ public class Server {
         }
     }
 
-    public static void sendReply(DatagramPacket request, byte[] headerBuffer, byte[] dataBuffer) {
-        try {
-            System.out.println("-----------------------------");
-            ClientDetails clientDetails = Server.getClientDetails(request);
-            DatagramPacket header = new DatagramPacket(headerBuffer, headerBuffer.length, clientDetails.getAddress(),
-                    clientDetails.getPort());
-            socket.send(header);
-            System.out.println("Header sent");
-            // ACK
-            DatagramPacket ack = new DatagramPacket(new byte[4], 4);
-            socket.receive(ack);
-            System.out.println("ACK received");
-
-            DatagramPacket data = new DatagramPacket(dataBuffer, dataBuffer.length, clientDetails.getAddress(),
-                    clientDetails.getPort());
-            socket.send(data);
-            System.out.println("Data sent");
-            // ACK
-            socket.receive(ack);
-            System.out.println("ACK received");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * Get the map of clients to their latest request ID
+     * @return  HashMap of ClientDetails to their latest request ID
+     */
+    public static HashMap<ClientDetails, Integer> getRequests() {
+        return Server.requests;
     }
 
-    public static int getResponseID() {
-        return ++responseID;
+    /**
+     * Check if the request is duplicated
+     * @param clientDetails     ClientDetails object containing the client's address and port
+     * @param requestID         Request ID
+     * @return   True if the request is duplicated, false otherwise
+     */
+    public boolean isRequestDuplicated(ClientDetails clientDetails, int requestID) {
+        if (Server.requests.containsKey(clientDetails) && Server.requests.get(clientDetails) == requestID) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Update the request ID for the client
+     * @param clientDetails     ClientDetails object containing the client's address and port
+     * @param requestID         Request ID
+     */
+    public static void updateRequest(ClientDetails clientDetails, int requestID) {
+        Server.requests.put(clientDetails, requestID);
     }
 }
