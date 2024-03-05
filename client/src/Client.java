@@ -80,13 +80,14 @@ public class Client {
 
         try {
             int requestID = 0;
-            int serviceID = 4;
-            String path = "/Users/leejuin/Document/GitHub/sc4051-distributed-systems/server/src/data.txt";
+            int serviceID = 5;
+            String path = "/Users/leejuin/Documents/GitHub/sc4051-distributed-systems/server/src/data.txt";
             //int offset = 9000;
             //String contentToInsert = "Hello World! This should be inserted into the file";
             //int contentByteLength = marshal(contentToInsert).length;
 
             byte[] data = marshal(requestID);
+            System.out.println(serviceID);
             data = joinByteArray(data, serviceID);
             data = joinByteArray(data, path.length());
             data = joinByteArray(data, path);
@@ -106,10 +107,11 @@ public class Client {
             socket.receive(serverData);
             System.out.println("Data received from server");
             int status = unmarshalInt(serverDataBuffer, 4);
-            long fileSize = unmarshalLong(serverDataBuffer, 8);
-            int contentLength = unmarshalInt(serverDataBuffer, 16);
-            String content = unmarshalString(serverDataBuffer, 20, contentLength);
-            System.out.println("Filesize: " + fileSize);
+            //long fileSize = unmarshalLong(serverDataBuffer, 8);
+            int contentLength = unmarshalInt(serverDataBuffer, 8);
+            System.out.println("Content length: " + contentLength);
+            String content = unmarshalString(serverDataBuffer, 12, contentLength);
+            //System.out.println("Filesize: " + fileSize);
             System.out.println("Status: " + status);
             System.out.println("Content received: " + content);
         } catch (IOException e) {

@@ -8,6 +8,7 @@ import src.Marshaller.Marshaller;
 import src.Services.Service1;
 import src.Services.Service2;
 import src.Services.Service4;
+import src.Services.Service5;
 
 public class Controller {
     /**
@@ -69,6 +70,7 @@ public class Controller {
                         Controller.sendService2Response(request, 0, message);
                         break;
                 }
+                break;
             case 4:
                 filePath = clientInput.getFilePath();
                 System.out.println("------------------ INFO ---------------------");
@@ -84,6 +86,23 @@ public class Controller {
                     message += "File size retrieved in bytes.";
                     Controller.sendService4Response(request, 1, fileSize, message);
                 }
+                break;
+            case 5:
+                filePath = clientInput.getFilePath();
+                System.out.println("------------------ INFO ---------------------");
+                System.out.println("Service: Delete file");
+                System.out.println("File path: " + filePath);
+                Service5 service5 = new Service5(filePath);
+                boolean deleted = service5.deleteFile();
+                message = "";
+                if (deleted) {
+                    message += "File deleted.";
+                    Controller.sendService5Response(request, 1, message);
+                } else {
+                    message += "Error deleting file. File not found.";
+                    Controller.sendService5Response(request, 0, message);
+                }
+                break;
             default:
                 break;
         }
@@ -147,5 +166,25 @@ public class Controller {
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
         Server.sendReply(request, dataBuffer);
+    }
+
+    public static void sendService5Response(DatagramPacket request, int status, String message) {
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int responseID = Server.getRequests().get(clientDetails);
+        System.out.println("-------------- Response packet --------------");
+        System.out.println("Response ID: " + responseID);
+        System.out.println("Status: " + status);
+        // Data packet
+        byte[] dataBuffer = Marshaller.marshal(responseID);
+        dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        int messageLength = message.length();
+        System.out.println("Message length: " + messageLength);
+        dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
+        System.out.println("Mesage: " + message);
+        dataBuffer = Marshaller.appendString(dataBuffer, message);
+        Server.sendReply(request, dataBuffer);
+
+        System.out.println( Marshaller.unmarshalInt(dataBuffer, 8));
+        System.out.println(Marshaller.unmarshalString(dataBuffer, 12, messageLength));
     }
 }

@@ -12,6 +12,8 @@ public class Marshaller {
                 return unmarshalService2(requestID, input);
             case 4:
                 return unmarshalService4(requestID, input);
+            case 5:
+                return unmarshalService5(requestID, input);
             default:
                 return null;
         }
@@ -36,22 +38,10 @@ public class Marshaller {
      * @return service number
      */
     public static int unmarshalServiceID(byte[] input) {
-        // Convert first 4 bytes into service number
+        // Convert next 4 bytes into service number
         return Marshaller.unmarshalInt(input, 4);
     }
 
-    /**
-     * Obtain the length of the request by left-shifting
-     * the next 4 bytes of the input
-     * This length is for next packet
-     * 
-     * @param input
-     * @return
-     */
-    public static int unmarshalRequestLength(byte[] input) {
-        // Convert the next 4 bytes into the length of the request
-        return Marshaller.unmarshalInt(input, 8);
-    }
 
     /**
      * Unmarshal the input for Service 1
@@ -142,6 +132,19 @@ public class Marshaller {
         String filePath = new String(input, 12, filePathLength);
 
         return new ClientPacket(requestID, 4, filePath, new ClientPayload());
+    }
+
+    public static ClientPacket unmarshalService5(int requestID, byte[] input) {
+        // Convert the next 4 bytes into the length of the file path
+        int filePathLength = 0;
+        for (int i = 8; i < 12; i++) {
+            filePathLength = (filePathLength << 8) | (input[i] & 0xff);
+        }
+
+        // Convert the next filePathLength bytes into the file path
+        String filePath = new String(input, 12, filePathLength);
+
+        return new ClientPacket(requestID, 5, filePath, new ClientPayload());
     }
 
     public static int unmarshalInt(byte[] b, int startIndex) {
