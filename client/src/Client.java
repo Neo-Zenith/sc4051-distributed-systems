@@ -8,8 +8,7 @@ import java.net.InetAddress;
 
 public class Client {
     static int port = 2222;
-    static String SERVER = "localhost"; // lab server address
-    static String payload = "1050"; // content to be sent over to the server
+    static String SERVER = "localhost"; 
 
     public static byte[] marshal(int x) {
         return new byte[] {
@@ -74,76 +73,36 @@ public class Client {
 
         try {
             int requestID = 0;
-            int serviceID = 1;
-            String path = "/Users/leejuin/Documents/GitHub/sc4051-distributed-system/server/src/data.txt";
-            int offset = 0;
-            int numBytes = 10;
+            int serviceID = 2;
+            String path = "/Users/leejuin/Documents/GitHub/sc4051-distributed-systems/server/src/data.txt";
+            int offset = 9000;
+            String contentToInsert = "Hello World! This should be inserted into the file";
+            int contentByteLength = marshal(contentToInsert).length;
 
             byte[] data = marshal(requestID);
             data = joinByteArray(data, serviceID);
             data = joinByteArray(data, path.length());
             data = joinByteArray(data, path);
             data = joinByteArray(data, offset);
-            data = joinByteArray(data, numBytes);
+            data = joinByteArray(data, contentByteLength);
+            data = joinByteArray(data, contentToInsert);
             System.out.println("Content to send: " + data);
 
-            byte[] header = marshal(requestID);
-            header = joinByteArray(header, 0);
-            header = joinByteArray(header, data.length);
-
-            // Send header
-            DatagramPacket request = new DatagramPacket(header, header.length);
-            System.out.println("Sending header...");
-            socket.send(request);
-            System.out.println("Header sent to server");
-
-            // store ACK for header packet
-            byte[] ackBuffer = new byte[4];
-            DatagramPacket ack = new DatagramPacket(ackBuffer, ackBuffer.length);
-            socket.receive(ack);
-
-            if (unmarshalInt(ackBuffer, 0) == requestID) {
-                System.out.println("Received ACK");
-            } else {
-                System.out.println("Received wrong ACK");
-                return;
-            }
-
-            // Send data
-            request = new DatagramPacket(data, data.length);
+            // Send request
+            DatagramPacket request = new DatagramPacket(data, data.length);
             System.out.println("Sending data");
             socket.send(request);
 
-            // wait for header packet from server
-            byte[] serverHeaderBuffer = new byte[8];
-            DatagramPacket serverHeader = new DatagramPacket(serverHeaderBuffer, 8);
-            socket.receive(serverHeader);
-            System.out.println("Data header received from server");
-            int responseID = unmarshalInt(serverHeaderBuffer, 0);
-            int responseLength = unmarshalInt(serverHeaderBuffer, 4);
-            System.out.println("Response ID: " + responseID);
-            System.out.println("Response Length: " + responseLength);
-
-            // send ACK for header packet
-            ackBuffer = marshal(responseID);
-            DatagramPacket serverAck = new DatagramPacket(ackBuffer, ackBuffer.length, serverHeader.getAddress(),
-                    serverHeader.getPort());
-            socket.send(serverAck);
-            System.out.println("ACK sent");
-
             // wait for data packet from server
-            byte[] serverDataBuffer = new byte[responseLength];
-            DatagramPacket serverData = new DatagramPacket(serverDataBuffer, responseLength);
+            byte[] serverDataBuffer = new byte[65536];
+            DatagramPacket serverData = new DatagramPacket(serverDataBuffer, serverDataBuffer.length);
             socket.receive(serverData);
             System.out.println("Data received from server");
             int status = unmarshalInt(serverDataBuffer, 4);
-            String content = unmarshalString(serverDataBuffer, 8, responseLength - 8);
+            int contentLength = unmarshalInt(serverDataBuffer, 8);
+            String content = unmarshalString(serverDataBuffer, 12, contentLength);
             System.out.println("Status: " + status);
             System.out.println("Content received: " + content);
-
-            // send ACK for header packet
-            socket.send(serverAck);
-            System.out.println("ACK sent");
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

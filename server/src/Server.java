@@ -35,20 +35,25 @@ public class Server {
             while (true) {
                 System.out.println("Waiting for response...");
                 // Buffer to store the request from the client
-                // Assume buffer never overflows, so set to MAX
-                byte[] buffer = new byte[Integer.MAX_VALUE];
+                // Assume buffer never overflows, set to 65536 bytes
+                // Integer.MAX_VALUE = 2147483647 causes OutofMemoryError
+                byte[] buffer = new byte[65536];
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                 socket.receive(request);
                 ClientDetails clientDetails = Server.getClientDetails(request);
+                System.out.println("=============================================");
                 System.out.println(
-                        "Received content from client " + clientDetails.getAddress() + ":" + clientDetails.getPort());
+                        "Received request from client " + clientDetails.getAddress() + ":" + clientDetails.getPort());
 
                 // Unmarshal the request
                 ClientPacket clientPacket = Marshaller.unmarshalClientPacket(buffer);
-                System.out.println("================ Data packet ================");
+                System.out.println("--------------- Request packet --------------");
                 System.out.println("Request ID: " + clientPacket.getRequestID());
+                System.out.println("Service ID: " + clientPacket.getServiceID());
+                // Add request to the map
+                Server.updateRequest(clientDetails, clientPacket.getRequestID());
                 Controller.processRequest(request, clientPacket);
-                System.out.println("=============================================");
+                System.out.println("=============================================\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -78,12 +83,11 @@ public class Server {
      */
     public static void sendReply(DatagramPacket request, byte[] replyBuffer) {
         try {
-            System.out.println("-----------------------------");
             ClientDetails clientDetails = Server.getClientDetails(request);
             DatagramPacket reply = new DatagramPacket(replyBuffer, replyBuffer.length, clientDetails.getAddress(),
                     clientDetails.getPort());
             socket.send(reply);
-            System.out.println("Acknowledgement sent");
+            System.out.println("Reply sent");
         } catch (IOException e) {
             e.printStackTrace();
         }

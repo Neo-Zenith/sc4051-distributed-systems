@@ -1,5 +1,8 @@
 package src.Services;
 
+import java.io.RandomAccessFile;
+import java.io.IOException;
+
 /**
  * Service 1
  * This service will read a file from the server and send it to the client
@@ -43,14 +46,13 @@ public class Service1 {
 
     public String readFromFile() {
         try {
-            java.io.RandomAccessFile file = new java.io.RandomAccessFile(filePath, "r");
+            RandomAccessFile file = new RandomAccessFile(filePath, "r");
             file.seek(offset);
             byte[] buffer = new byte[numBytes];
             file.read(buffer);
             file.close();
             return new String(buffer);
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             return null;
         }
     }

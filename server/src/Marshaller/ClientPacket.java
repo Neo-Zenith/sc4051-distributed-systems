@@ -21,17 +21,6 @@ public class ClientPacket {
         this.clientPayload = clientPayload;
     }
 
-    /**
-     * Only used for first packet before actual data
-     * Needed to specify the buffer size
-     * @param requestID request ID
-     * @param requestLength length of the next packet
-     */
-    public ClientPacket(int requestID, int requestLength) {
-        this.requestID = requestID;
-        this.requestLength = requestLength;
-    }
-
     public int getRequestID() {
         return this.requestID;
     }

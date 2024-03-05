@@ -26,7 +26,7 @@ public class Controller {
                 filePath = clientInput.getFilePath();
                 offset = clientInput.getClientPayload().getOffset();
                 numBytes = clientInput.getClientPayload().getNumBytes();
-                System.out.println("--------------------------------");
+                System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Read from file");
                 System.out.println("File path: " + filePath);
                 System.out.println("Offset: " + offset);
@@ -34,7 +34,6 @@ public class Controller {
                 Service1 service1 = new Service1(filePath, offset, numBytes);
                 String content = service1.readFromFile();
                 System.out.println("Content: " + content);
-                System.out.println("--------------------------------");
                 if (content == null) {
                     content = "Error reading file";
                     Controller.sendService1Response(request, 0, content);
@@ -46,9 +45,29 @@ public class Controller {
                 filePath = clientInput.getFilePath();
                 offset = clientInput.getClientPayload().getOffset();
                 byte[] bytesToInsert = clientInput.getClientPayload().getBytesToInsert();
+                System.out.println("------------------ INFO ---------------------");
+                System.out.println("Service: Read from file");
+                System.out.println("File path: " + filePath);
+                System.out.println("Offset: " + offset);
+                System.out.println("Bytes to insert: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length));
                 Service2 service2 = new Service2(filePath, offset, bytesToInsert);
-                Controller.sendService2Response();
-                break;
+                int code = service2.writeToFile();
+                String message = "";
+                switch (code) {
+                    case 200:
+                        message += "Bytes written to file. ";
+                        message += "Written bytes: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
+                        Controller.sendService2Response(request, 1, message);
+                        break;
+                    case 400:
+                        message += "Failed to write to file. Offset exceeded file length.";
+                        Controller.sendService2Response(request, 0, message);
+                        break;
+                    case 404:
+                        message += "Failed to write to file. File not found.";
+                        Controller.sendService2Response(request, 0, message);
+                        break;
+                }
             default:
                 break;
         }
@@ -64,16 +83,34 @@ public class Controller {
     public static void sendService1Response(DatagramPacket request, int status, String content) {
         ClientDetails clientDetails = Server.getClientDetails(request);
         int responseID = Server.getRequests().get(clientDetails);
-
+        System.out.println("-------------- Response packet --------------");
+        System.out.println("Response ID: " + responseID);
+        System.out.println("Status: " + status);
         // Data packet
         byte[] dataBuffer = Marshaller.marshal(responseID);
         dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        int contentLength = content.length();
+        System.out.println("Content length: " + contentLength);
+        dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
+        System.out.println("Content: " + content);
         dataBuffer = Marshaller.appendString(dataBuffer, content);
-
         Server.sendReply(request, dataBuffer);
     }
 
-    public static void sendService2Response() {
-
+    public static void sendService2Response(DatagramPacket request, int status, String message) {
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int responseID = Server.getRequests().get(clientDetails);
+        System.out.println("-------------- Response packet --------------");
+        System.out.println("Response ID: " + responseID);
+        System.out.println("Status: " + status);
+        // Data packet
+        byte[] dataBuffer = Marshaller.marshal(responseID);
+        dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        int messageLength = message.length();
+        System.out.println("Message length: " + messageLength);
+        dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
+        System.out.println("Mesage: " + message);
+        dataBuffer = Marshaller.appendString(dataBuffer, message);
+        Server.sendReply(request, dataBuffer);
     }
 }

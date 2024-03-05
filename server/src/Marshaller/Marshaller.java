@@ -11,9 +11,7 @@ public class Marshaller {
             case 2:
                 return unmarshalService2(requestID, input);
             default:
-                int requestLength = unmarshalRequestLength(input);
-                System.out.println(requestLength);
-                return new ClientPacket(requestID, requestLength);
+                return null;
         }
     }
 
@@ -93,7 +91,7 @@ public class Marshaller {
      * Unmarshal the input for Service 2
      * Service 2 will have a file path, offset and bytes to insert
      * The corresponding fields are string, int and byte array respectively
-     * String is variable length, the rest are fixed length
+     * String is variable length, offset is fixed length, bytes to insert is variable length
      * 
      * @param requestID request ID
      * @param input     byte array containing the request

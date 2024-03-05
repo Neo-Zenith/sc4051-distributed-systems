@@ -1,5 +1,9 @@
 package src.Services;
 
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.io.IOException;
+
 public class Service2 {
     private String filePath;
     private int offset;
@@ -35,15 +39,27 @@ public class Service2 {
         this.bytesToInsert = bytesToInsert;
     }
 
-    //TODO: Implement writeToFile error logic, this is just default template
-    public void writeToFile() {
+    public int writeToFile() {
         try {
-            java.io.RandomAccessFile file = new java.io.RandomAccessFile(filePath, "rw");
+            File fileObj = new File(filePath);
+            if (!fileObj.isFile()) {
+                return 404;
+            }
+            long fileLength = fileObj.length();
+            if (offset > fileLength) {
+                return 400;
+            }
+            RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+            byte[] existingContent = new byte[(int) (fileLength - offset)];
+            file.seek(offset);
+            file.read(existingContent);
             file.seek(offset);
             file.write(bytesToInsert);
+            file.write(existingContent);
             file.close();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
+            return 200;
+        } catch (IOException e) {
+            return 404;
         }
     }
 }

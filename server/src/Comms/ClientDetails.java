@@ -25,4 +25,21 @@ public class ClientDetails {
     public void setPort(int port) {
         this.port = port;
     }
+
+    @Override
+    public int hashCode() {
+        return address.hashCode() + port;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof ClientDetails)) {
+            return false;
+        }
+        ClientDetails clientDetails = (ClientDetails) obj;
+        return clientDetails.getAddress().equals(address) && clientDetails.getPort() == port;
+    }
 }
