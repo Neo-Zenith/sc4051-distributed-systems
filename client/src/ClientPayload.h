@@ -3,6 +3,13 @@
 
 #include <string>
 
+/**
+ * @brief The ClientPayload class represents the payload sent by the client to
+ * the server.
+ *
+ * It contains information such as the offset, number of bytes, monitor
+ * interval, and input data.
+ */
 class ClientPayload {
     int offset;
     int numBytes;
@@ -10,22 +17,91 @@ class ClientPayload {
     std::string input;
 
    public:
-    // Constructor
+    /**
+     * @brief Default constructor for the ClientPayload class.
+     */
     ClientPayload();
+
+    /**
+     * @brief Constructor for the ClientPayload class with a specified monitor
+     * interval.
+     *
+     * @param monitorInterval The monitor interval in minutes.
+     */
     ClientPayload(int monitorInterval);
+
+    /**
+     * @brief Constructor for the ClientPayload class with a specified offset
+     * and number of bytes.
+     *
+     * @param offset The offset value.
+     * @param numBytes The number of bytes.
+     */
     ClientPayload(int offset, int numBytes);
+
+    /**
+     * @brief Constructor for the ClientPayload class with a specified offset
+     * and input data.
+     *
+     * @param offset The offset value.
+     * @param input The input data.
+     */
     ClientPayload(int offset, const std::string& input);
 
-    // Getters
+    /**
+     * @brief Get the offset value.
+     *
+     * @return The offset value.
+     */
     int getOffset() const;
+
+    /**
+     * @brief Get the number of bytes.
+     *
+     * @return The number of bytes.
+     */
     int getNumBytes() const;
+
+    /**
+     * @brief Get the monitor interval in minutes.
+     *
+     * @return The monitor interval in minutes.
+     */
     int getMonitorInterval() const;
+
+    /**
+     * @brief Get the input data.
+     *
+     * @return The input data.
+     */
     const std::string& getInput() const;
 
-    // Setters
+    /**
+     * @brief Set the offset value.
+     *
+     * @param offset The offset value to set.
+     */
     void setOffset(int offset);
+
+    /**
+     * @brief Set the number of bytes.
+     *
+     * @param numBytes The number of bytes to set.
+     */
     void setNumBytes(int numBytes);
+
+    /**
+     * @brief Set the input data.
+     *
+     * @param input The input data to set.
+     */
     void setInput(const std::string& input);
+
+    /**
+     * @brief Set the monitor interval in minutes.
+     *
+     * @param monitorInterval The monitor interval in minutes to set.
+     */
     void setMonitorInterval(int monitorInterval);
 };
 
