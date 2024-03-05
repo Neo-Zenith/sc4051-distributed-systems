@@ -109,7 +109,11 @@ public class Controller {
     }
 
     /**
-     * Marshal the response before sending it to the client
+     * Format:
+     *  responseID (4 bytes)
+     *  status (4 bytes)
+     *  content length (4 bytes)
+     *  content (variable length)
      * 
      * @param request   The request packet
      * @param status    The status of the response (0 = error, 1 = success)
@@ -132,6 +136,16 @@ public class Controller {
         Server.sendReply(request, dataBuffer);
     }
 
+    /**
+     * Format: 
+     *  responseID (4 bytes)
+     *  status (4 bytes)
+     *  message length (4 bytes)
+     *  message (variable length)
+     * @param request   The request packet
+     * @param status    The status of the response (0 = error, 1 = success)
+     * @param message   The message of the response to be marshalled
+     */
     public static void sendService2Response(DatagramPacket request, int status, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
         int responseID = Server.getRequests().get(clientDetails);
@@ -149,6 +163,18 @@ public class Controller {
         Server.sendReply(request, dataBuffer);
     }
 
+    /**
+     * Format 
+     *  responseID (4 bytes)
+     *  status (4 bytes)
+     *  file size (8 bytes)
+     *  message length (4 bytes)
+     *  message (variable length)
+     * @param request   The request packet
+     * @param status    The status of the response (0 = error, 1 = success)
+     * @param fileSize  The file size in bytes
+     * @param message   The message of the response to be marshalled
+     */
     public static void sendService4Response(DatagramPacket request, int status, long fileSize, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
         int responseID = Server.getRequests().get(clientDetails);
@@ -168,6 +194,16 @@ public class Controller {
         Server.sendReply(request, dataBuffer);
     }
 
+    /**
+     * Format:
+     *  responseID (4 bytes)
+     *  status (4 bytes)
+     *  message length (4 bytes)
+     *  message (variable length)
+     * @param request   The request packet
+     * @param status    The status of the response (0 = error, 1 = success)
+     * @param message   The message of the response to be marshalled
+     */
     public static void sendService5Response(DatagramPacket request, int status, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
         int responseID = Server.getRequests().get(clientDetails);

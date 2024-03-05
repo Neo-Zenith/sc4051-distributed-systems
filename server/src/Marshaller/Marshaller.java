@@ -22,8 +22,8 @@ public class Marshaller {
     /**
      * Obtain the request ID by left-shifting the first 4 bytes of the input
      * 
-     * @param input
-     * @return
+     * @param input byte array containing the request payload
+     * @return  request ID
      */
     public static int unmarshalRequestID(byte[] input) {
         // Convert first 4 bytes into request ID
@@ -34,7 +34,7 @@ public class Marshaller {
      * Obtain the service requested by left-shifting the
      * next 4 bytes of the input
      * 
-     * @param input byte array containing the request
+     * @param input byte array containing the request payload
      * @return service number
      */
     public static int unmarshalServiceID(byte[] input) {
@@ -45,9 +45,11 @@ public class Marshaller {
 
     /**
      * Unmarshal the input for Service 1
-     * Service 1 will have a file path, offset and number of bytes to read
-     * The corresponding fields are string, int and int respectively
-     * String is variable length, the rest are fixed length
+     * Format:
+     *  - 4 bytes for request ID
+     *  - 4 bytes for service ID
+     *  - 4 bytes for length of file path
+     *  - variable length for file path
      * 
      * @param requestID request ID
      * @param input     byte array containing the request
@@ -81,9 +83,14 @@ public class Marshaller {
 
     /**
      * Unmarshal the input for Service 2
-     * Service 2 will have a file path, offset and bytes to insert
-     * The corresponding fields are string, int and byte array respectively
-     * String is variable length, offset is fixed length, bytes to insert is variable length
+     * Format:
+     *  - 4 bytes for request ID
+     *  - 4 bytes for service ID
+     *  - 4 bytes for length of file path
+     *  - variable length for file path
+     *  - 4 bytes for offset
+     *  - 4 bytes for length of bytes to insert
+     *  - variable length for bytes to insert
      * 
      * @param requestID request ID
      * @param input     byte array containing the request
@@ -121,6 +128,18 @@ public class Marshaller {
         return new ClientPacket(requestID, 2, filePath, clientPayload);
     }
 
+    /**
+     * Unmarshal the input for Service 4
+     * Format:
+     *  - 4 bytes for request ID
+     *  - 4 bytes for service ID
+     *  - 4 bytes for length of file path
+     *  - variable length for file path
+     * 
+     * @param requestID
+     * @param input
+     * @return
+     */
     public static ClientPacket unmarshalService4(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
         int filePathLength = 0;
@@ -134,6 +153,17 @@ public class Marshaller {
         return new ClientPacket(requestID, 4, filePath, new ClientPayload());
     }
 
+    /**
+     * Unmarshal the input for Service 5
+     * Format:
+     *  - 4 bytes for request ID
+     *  - 4 bytes for service ID
+     *  - 4 bytes for length of file path
+     *  - variable length for file path
+     * @param requestID
+     * @param input
+     * @return
+     */
     public static ClientPacket unmarshalService5(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
         int filePathLength = 0;
