@@ -1,4 +1,5 @@
 package src.Controller;
+
 import java.net.*;
 
 import src.Server;
@@ -51,14 +52,16 @@ public class Controller {
                 System.out.println("Service: Write to file");
                 System.out.println("File path: " + filePath);
                 System.out.println("Offset: " + offset);
-                System.out.println("Bytes to insert: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length));
+                System.out.println(
+                        "Bytes to insert: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length));
                 Service2 service2 = new Service2(filePath, offset, bytesToInsert);
                 int code = service2.writeToFile();
                 String message = "";
                 switch (code) {
                     case 200:
                         message += "Bytes written to file. ";
-                        message += "Written bytes: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
+                        message += "Written bytes: "
+                                + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
                         Controller.sendService2Response(request, 1, message);
                         break;
                     case 400:
@@ -110,14 +113,14 @@ public class Controller {
 
     /**
      * Format:
-     *  responseID (4 bytes)
-     *  status (4 bytes)
-     *  content length (4 bytes)
-     *  content (variable length)
+     * responseID (4 bytes)
+     * status (4 bytes)
+     * content length (4 bytes)
+     * content (variable length)
      * 
-     * @param request   The request packet
-     * @param status    The status of the response (0 = error, 1 = success)
-     * @param content   The content of the response to be marshalled
+     * @param request The request packet
+     * @param status  The status of the response (0 = error, 1 = success)
+     * @param content The content of the response to be marshalled
      */
     public static void sendService1Response(DatagramPacket request, int status, String content) {
         ClientDetails clientDetails = Server.getClientDetails(request);
@@ -137,14 +140,15 @@ public class Controller {
     }
 
     /**
-     * Format: 
-     *  responseID (4 bytes)
-     *  status (4 bytes)
-     *  message length (4 bytes)
-     *  message (variable length)
-     * @param request   The request packet
-     * @param status    The status of the response (0 = error, 1 = success)
-     * @param message   The message of the response to be marshalled
+     * Format:
+     * responseID (4 bytes)
+     * status (4 bytes)
+     * message length (4 bytes)
+     * message (variable length)
+     * 
+     * @param request The request packet
+     * @param status  The status of the response (0 = error, 1 = success)
+     * @param message The message of the response to be marshalled
      */
     public static void sendService2Response(DatagramPacket request, int status, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
@@ -164,16 +168,17 @@ public class Controller {
     }
 
     /**
-     * Format 
-     *  responseID (4 bytes)
-     *  status (4 bytes)
-     *  file size (8 bytes)
-     *  message length (4 bytes)
-     *  message (variable length)
-     * @param request   The request packet
-     * @param status    The status of the response (0 = error, 1 = success)
-     * @param fileSize  The file size in bytes
-     * @param message   The message of the response to be marshalled
+     * Format
+     * responseID (4 bytes)
+     * status (4 bytes)
+     * file size (8 bytes)
+     * message length (4 bytes)
+     * message (variable length)
+     * 
+     * @param request  The request packet
+     * @param status   The status of the response (0 = error, 1 = success)
+     * @param fileSize The file size in bytes
+     * @param message  The message of the response to be marshalled
      */
     public static void sendService4Response(DatagramPacket request, int status, long fileSize, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
@@ -196,13 +201,14 @@ public class Controller {
 
     /**
      * Format:
-     *  responseID (4 bytes)
-     *  status (4 bytes)
-     *  message length (4 bytes)
-     *  message (variable length)
-     * @param request   The request packet
-     * @param status    The status of the response (0 = error, 1 = success)
-     * @param message   The message of the response to be marshalled
+     * responseID (4 bytes)
+     * status (4 bytes)
+     * message length (4 bytes)
+     * message (variable length)
+     * 
+     * @param request The request packet
+     * @param status  The status of the response (0 = error, 1 = success)
+     * @param message The message of the response to be marshalled
      */
     public static void sendService5Response(DatagramPacket request, int status, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
@@ -216,11 +222,11 @@ public class Controller {
         int messageLength = message.length();
         System.out.println("Message length: " + messageLength);
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
-        System.out.println("Mesage: " + message);
+        System.out.println("Message: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
         Server.sendReply(request, dataBuffer);
 
-        System.out.println( Marshaller.unmarshalInt(dataBuffer, 8));
+        System.out.println(Marshaller.unmarshalInt(dataBuffer, 8));
         System.out.println(Marshaller.unmarshalString(dataBuffer, 12, messageLength));
     }
 }
