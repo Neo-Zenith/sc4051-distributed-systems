@@ -32,6 +32,13 @@ public class Client {
         return new String(x, startIndex, length);
     }
 
+    public static long unmarshalLong(byte[] x, int startIndex) {
+        return ((long) (x[startIndex] & 0xFF) << 56) | ((long) (x[startIndex + 1] & 0xFF) << 48)
+                | ((long) (x[startIndex + 2] & 0xFF) << 40) | ((long) (x[startIndex + 3] & 0xFF) << 32)
+                | ((long) (x[startIndex + 4] & 0xFF) << 24) | ((long) (x[startIndex + 5] & 0xFF) << 16)
+                | ((long) (x[startIndex + 6] & 0xFF) << 8) | ((long) (x[startIndex + 7] & 0xFF) << 0);
+    }
+
     public static byte[] joinByteArray(byte[] a, int b) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
@@ -73,19 +80,19 @@ public class Client {
 
         try {
             int requestID = 0;
-            int serviceID = 2;
-            String path = "/Users/leejuin/Documents/GitHub/sc4051-distributed-systems/server/src/data.txt";
-            int offset = 9000;
-            String contentToInsert = "Hello World! This should be inserted into the file";
-            int contentByteLength = marshal(contentToInsert).length;
+            int serviceID = 4;
+            String path = "/Users/leejuin/Document/GitHub/sc4051-distributed-systems/server/src/data.txt";
+            //int offset = 9000;
+            //String contentToInsert = "Hello World! This should be inserted into the file";
+            //int contentByteLength = marshal(contentToInsert).length;
 
             byte[] data = marshal(requestID);
             data = joinByteArray(data, serviceID);
             data = joinByteArray(data, path.length());
             data = joinByteArray(data, path);
-            data = joinByteArray(data, offset);
-            data = joinByteArray(data, contentByteLength);
-            data = joinByteArray(data, contentToInsert);
+            // data = joinByteArray(data, offset);
+            // data = joinByteArray(data, contentByteLength);
+            // data = joinByteArray(data, contentToInsert);
             System.out.println("Content to send: " + data);
 
             // Send request
@@ -99,8 +106,10 @@ public class Client {
             socket.receive(serverData);
             System.out.println("Data received from server");
             int status = unmarshalInt(serverDataBuffer, 4);
-            int contentLength = unmarshalInt(serverDataBuffer, 8);
-            String content = unmarshalString(serverDataBuffer, 12, contentLength);
+            long fileSize = unmarshalLong(serverDataBuffer, 8);
+            int contentLength = unmarshalInt(serverDataBuffer, 16);
+            String content = unmarshalString(serverDataBuffer, 20, contentLength);
+            System.out.println("Filesize: " + fileSize);
             System.out.println("Status: " + status);
             System.out.println("Content received: " + content);
         } catch (IOException e) {

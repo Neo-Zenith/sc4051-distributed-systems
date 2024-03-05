@@ -25,6 +25,11 @@ public class ClientPayload {
         this.bytesToInsert = bytesToInsert;
     }
 
+    /**
+     * Default constructor
+     */
+    public ClientPayload() {}
+
     public int getOffset() {
         return offset;
     }

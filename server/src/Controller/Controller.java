@@ -7,6 +7,7 @@ import src.Marshaller.ClientPacket;
 import src.Marshaller.Marshaller;
 import src.Services.Service1;
 import src.Services.Service2;
+import src.Services.Service4;
 
 public class Controller {
     /**
@@ -35,7 +36,7 @@ public class Controller {
                 String content = service1.readFromFile();
                 System.out.println("Content: " + content);
                 if (content == null) {
-                    content = "Error reading file";
+                    content = "Error reading file. File not found.";
                     Controller.sendService1Response(request, 0, content);
                 } else {
                     Controller.sendService1Response(request, 1, content);
@@ -46,7 +47,7 @@ public class Controller {
                 offset = clientInput.getClientPayload().getOffset();
                 byte[] bytesToInsert = clientInput.getClientPayload().getBytesToInsert();
                 System.out.println("------------------ INFO ---------------------");
-                System.out.println("Service: Read from file");
+                System.out.println("Service: Write to file");
                 System.out.println("File path: " + filePath);
                 System.out.println("Offset: " + offset);
                 System.out.println("Bytes to insert: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length));
@@ -60,13 +61,28 @@ public class Controller {
                         Controller.sendService2Response(request, 1, message);
                         break;
                     case 400:
-                        message += "Failed to write to file. Offset exceeded file length.";
+                        message += "Error writing to file. Offset exceeded file length.";
                         Controller.sendService2Response(request, 0, message);
                         break;
                     case 404:
-                        message += "Failed to write to file. File not found.";
+                        message += "Error writing to file. File not found.";
                         Controller.sendService2Response(request, 0, message);
                         break;
+                }
+            case 4:
+                filePath = clientInput.getFilePath();
+                System.out.println("------------------ INFO ---------------------");
+                System.out.println("Service: Get file length in bytes");
+                System.out.println("File path: " + filePath);
+                Service4 service4 = new Service4(filePath);
+                long fileSize = service4.getFileSize();
+                message = "";
+                if (fileSize == -1) {
+                    message += "Error reading file. File not found.";
+                    Controller.sendService4Response(request, 0, fileSize, message);
+                } else {
+                    message += "File size retrieved in bytes.";
+                    Controller.sendService4Response(request, 1, fileSize, message);
                 }
             default:
                 break;
@@ -106,6 +122,25 @@ public class Controller {
         // Data packet
         byte[] dataBuffer = Marshaller.marshal(responseID);
         dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        int messageLength = message.length();
+        System.out.println("Message length: " + messageLength);
+        dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
+        System.out.println("Mesage: " + message);
+        dataBuffer = Marshaller.appendString(dataBuffer, message);
+        Server.sendReply(request, dataBuffer);
+    }
+
+    public static void sendService4Response(DatagramPacket request, int status, long fileSize, String message) {
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int responseID = Server.getRequests().get(clientDetails);
+        System.out.println("-------------- Response packet --------------");
+        System.out.println("Response ID: " + responseID);
+        System.out.println("Status: " + status);
+        // Data packet
+        byte[] dataBuffer = Marshaller.marshal(responseID);
+        dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        dataBuffer = Marshaller.appendLong(dataBuffer, fileSize);
+        System.out.println("File size: " + fileSize + " bytes");
         int messageLength = message.length();
         System.out.println("Message length: " + messageLength);
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);

@@ -10,6 +10,8 @@ public class Marshaller {
                 return unmarshalService1(requestID, input);
             case 2:
                 return unmarshalService2(requestID, input);
+            case 4:
+                return unmarshalService4(requestID, input);
             default:
                 return null;
         }
@@ -129,6 +131,19 @@ public class Marshaller {
         return new ClientPacket(requestID, 2, filePath, clientPayload);
     }
 
+    public static ClientPacket unmarshalService4(int requestID, byte[] input) {
+        // Convert the next 4 bytes into the length of the file path
+        int filePathLength = 0;
+        for (int i = 8; i < 12; i++) {
+            filePathLength = (filePathLength << 8) | (input[i] & 0xff);
+        }
+
+        // Convert the next filePathLength bytes into the file path
+        String filePath = new String(input, 12, filePathLength);
+
+        return new ClientPacket(requestID, 4, filePath, new ClientPayload());
+    }
+
     public static int unmarshalInt(byte[] b, int startIndex) {
         return ((b[startIndex] & 0xFF) << 24) | ((b[startIndex + 1] & 0xFF) << 16) | ((b[startIndex + 2] & 0xFF) << 8)
                 | (b[startIndex + 3] & 0xFF);
@@ -155,6 +170,11 @@ public class Marshaller {
         return result;
     }
 
+    public static byte[] marshal(long x) {
+        return new byte[] { (byte) (x >> 56), (byte) (x >> 48), (byte) (x >> 40), (byte) (x >> 32), (byte) (x >> 24),
+                (byte) (x >> 16), (byte) (x >> 8), (byte) (x >> 0) };
+    }
+
     public static byte[] appendInt(byte[] byteArray, int x) {
         byte[] intBytes = Marshaller.marshal(x);
         byte[] newByteArray = new byte[byteArray.length + intBytes.length];
@@ -169,6 +189,13 @@ public class Marshaller {
         System.arraycopy(byteArray, 0, newByteArray, 0, byteArray.length);
         System.arraycopy(stringBytes, 0, newByteArray, byteArray.length, stringBytes.length);
         return newByteArray;
+    }
 
+    public static byte[] appendLong(byte[] byteArray, long x) {
+        byte[] longBytes = Marshaller.marshal(x);
+        byte[] newByteArray = new byte[byteArray.length + longBytes.length];
+        System.arraycopy(byteArray, 0, newByteArray, 0, byteArray.length);
+        System.arraycopy(longBytes, 0, newByteArray, byteArray.length, longBytes.length);
+        return newByteArray;
     }
 }
