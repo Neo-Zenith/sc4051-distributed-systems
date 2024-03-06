@@ -10,10 +10,10 @@ ClientPayload::ClientPayload() {}
 
 /**
  * @brief Constructor for ClientPayload class.
- * @param monitorInterval The monitor interval value to set.
+ * @param expirationTime The expiration time value to set.
  */
-ClientPayload::ClientPayload(int monitorInterval)
-    : monitorInterval(monitorInterval) {}
+ClientPayload::ClientPayload(long expirationTime)
+    : expirationTime(expirationTime) {}
 
 /**
  * @brief Constructor for ClientPayload class.
@@ -44,10 +44,10 @@ int ClientPayload::getOffset() const { return offset; }
 int ClientPayload::getNumBytes() const { return numBytes; }
 
 /**
- * @brief Get the monitor interval of the client payload.
- * @return The monitor interval.
+ * @brief Get the expiration time of the client payload.
+ * @return The expiration time.
  */
-int ClientPayload::getMonitorInterval() const { return monitorInterval; }
+long ClientPayload::getExpirationTime() const { return expirationTime; }
 
 /**
  * @brief Get the input string of the client payload.
@@ -70,11 +70,11 @@ void ClientPayload::setOffset(int offset) { this->offset = offset; }
 void ClientPayload::setNumBytes(int numBytes) { this->numBytes = numBytes; }
 
 /**
- * @brief Set the monitor interval of the client payload.
- * @param monitorInterval The monitor interval to set.
+ * @brief Set the expiration time of the client payload.
+ * @param expirationTime The expiration time to set.
  */
-void ClientPayload::setMonitorInterval(int monitorInterval) {
-    this->monitorInterval = monitorInterval;
+void ClientPayload::setExpirationTime(long expirationTime) {
+    this->expirationTime = expirationTime;
 }
 
 /**

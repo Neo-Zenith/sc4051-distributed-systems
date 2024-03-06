@@ -13,7 +13,7 @@
 class ClientPayload {
     int offset;
     int numBytes;
-    int monitorInterval;  // in minutes
+    long expirationTime;  // in minutes
     std::string input;
 
    public:
@@ -26,9 +26,9 @@ class ClientPayload {
      * @brief Constructor for the ClientPayload class with a specified monitor
      * interval.
      *
-     * @param monitorInterval The monitor interval in minutes.
+     * @param expirationTime The expiration time in minutes.
      */
-    ClientPayload(int monitorInterval);
+    ClientPayload(long expirationTime);
 
     /**
      * @brief Constructor for the ClientPayload class with a specified offset
@@ -63,11 +63,11 @@ class ClientPayload {
     int getNumBytes() const;
 
     /**
-     * @brief Get the monitor interval in minutes.
+     * @brief Get the expiration time in minutes.
      *
-     * @return The monitor interval in minutes.
+     * @return The expiration time in minutes.
      */
-    int getMonitorInterval() const;
+    long getExpirationTime() const;
 
     /**
      * @brief Get the input data.
@@ -98,11 +98,11 @@ class ClientPayload {
     void setInput(const std::string& input);
 
     /**
-     * @brief Set the monitor interval in minutes.
+     * @brief Set the expiration time in minutes.
      *
-     * @param monitorInterval The monitor interval in minutes to set.
+     * @param expirationTime The expiration time in minutes to set.
      */
-    void setMonitorInterval(int monitorInterval);
+    void setExpirationTime(long expirationTime);
 };
 
 #endif  // CLIENT_PAYLOAD_H
