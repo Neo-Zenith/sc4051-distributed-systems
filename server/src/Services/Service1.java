@@ -20,6 +20,10 @@ public class Service1 {
         this.numBytes = numBytes;
     }
 
+    public Service1(String filePath) {
+        this.filePath = filePath;
+    }
+
     public String getFilePath() {
         return filePath;
     }
@@ -49,6 +53,18 @@ public class Service1 {
             RandomAccessFile file = new RandomAccessFile(filePath, "r");
             file.seek(offset);
             byte[] buffer = new byte[numBytes];
+            file.read(buffer);
+            file.close();
+            return new String(buffer);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public String readFullFile() {
+        try {
+            RandomAccessFile file = new RandomAccessFile(filePath, "r");
+            byte[] buffer = new byte[(int) file.length()];
             file.read(buffer);
             file.close();
             return new String(buffer);

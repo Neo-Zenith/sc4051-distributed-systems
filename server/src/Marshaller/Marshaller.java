@@ -1,5 +1,8 @@
 package src.Marshaller;
 
+import java.util.Calendar;
+import java.util.Date;
+
 public class Marshaller {
     public static ClientPacket unmarshalClientPacket(byte[] input) {
         int requestID = Marshaller.unmarshalRequestID(input);
@@ -10,6 +13,8 @@ public class Marshaller {
                 return unmarshalService1(requestID, input);
             case 2:
                 return unmarshalService2(requestID, input);
+            case 3:
+                return unmarshalService3(requestID, input);
             case 4:
                 return unmarshalService4(requestID, input);
             case 5:
@@ -57,25 +62,16 @@ public class Marshaller {
      */
     public static ClientPacket unmarshalService1(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
-        int filePathLength = 0;
-        for (int i = 8; i < 12; i++) {
-            filePathLength = (filePathLength << 8) | (input[i] & 0xff);
-        }
+        int filePathLength = unmarshalInt(input, 8);
 
         // Convert the next filePathLength bytes into the file path
-        String filePath = new String(input, 12, filePathLength);
+        String filePath = unmarshalString(input, 12, filePathLength);
 
         // Convert the next 4 bytes into the offset
-        int offset = 0;
-        for (int i = 12 + filePathLength; i < 16 + filePathLength; i++) {
-            offset = (offset << 8) | (input[i] & 0xff);
-        }
+        int offset = unmarshalInt(input, 12 + filePathLength);
 
         // Convert the next 4 bytes into the number of bytes to read
-        int numBytes = 0;
-        for (int i = 16 + filePathLength; i < 20 + filePathLength; i++) {
-            numBytes = (numBytes << 8) | (input[i] & 0xff);
-        }
+        int numBytes = unmarshalInt(input, 16 + filePathLength);
 
         ClientPayload clientPayload = new ClientPayload(offset, numBytes);
         return new ClientPacket(requestID, 1, filePath, clientPayload);
@@ -98,25 +94,16 @@ public class Marshaller {
      */
     public static ClientPacket unmarshalService2(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
-        int filePathLength = 0;
-        for (int i = 8; i < 12; i++) {
-            filePathLength = (filePathLength << 8) | (input[i] & 0xff);
-        }
+        int filePathLength = unmarshalInt(input, 8);
 
         // Convert the next filePathLength bytes into the file path
-        String filePath = new String(input, 12, filePathLength);
+        String filePath = unmarshalString(input, 12, filePathLength);
 
         // Convert the next 4 bytes into the offset
-        int offset = 0;
-        for (int i = 12 + filePathLength; i < 16 + filePathLength; i++) {
-            offset = (offset << 8) | (input[i] & 0xff);
-        }
+        int offset = unmarshalInt(input, 12 + filePathLength);
 
         // Convert the next 4 bytes into the length of the bytes to insert
-        int bytesToInsertLength = 0;
-        for (int i = 16 + filePathLength; i < 20 + filePathLength; i++) {
-            bytesToInsertLength = (bytesToInsertLength << 8) | (input[i] & 0xff);
-        }
+        int bytesToInsertLength = unmarshalInt(input, 16 + filePathLength);
 
         // Convert the next bytesToInsertLength bytes into the bytes to insert
         byte[] bytesToInsert = new byte[bytesToInsertLength];
@@ -126,6 +113,35 @@ public class Marshaller {
 
         ClientPayload clientPayload = new ClientPayload(offset, bytesToInsert);
         return new ClientPacket(requestID, 2, filePath, clientPayload);
+    }
+
+    /**
+     * Unmarshal the input for Service 3
+     * Format:
+     *  - 4 bytes for request ID
+     *  - 4 bytes for service ID
+     *  - 4 bytes for length of file path
+     *  - variable length for file path
+     *  - 8 bytes for expiry date in long (time since epoch in milliseconds)
+     * @param requestID
+     * @param input
+     * @return
+     */
+    public static ClientPacket unmarshalService3(int requestID, byte[] input) {
+        // Convert the next 4 bytes into the length of the file path
+        int filePathLength = unmarshalInt(input, 8);
+
+        // Convert the next filePathLength bytes into the file path
+        String filePath = unmarshalString(input, 12, filePathLength);
+
+        // Convert next 8 bytes into expiryDate in long
+        long expiryDateInMillis = unmarshalLong(input, 12 + filePathLength);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(expiryDateInMillis);
+        Date expiryDate = calendar.getTime();
+
+        return new ClientPacket(requestID, 3, filePath, new ClientPayload(expiryDate));
     }
 
     /**
@@ -142,13 +158,10 @@ public class Marshaller {
      */
     public static ClientPacket unmarshalService4(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
-        int filePathLength = 0;
-        for (int i = 8; i < 12; i++) {
-            filePathLength = (filePathLength << 8) | (input[i] & 0xff);
-        }
+        int filePathLength = unmarshalInt(input, 8);
 
         // Convert the next filePathLength bytes into the file path
-        String filePath = new String(input, 12, filePathLength);
+        String filePath = unmarshalString(input, 12, filePathLength);
 
         return new ClientPacket(requestID, 4, filePath, new ClientPayload());
     }
@@ -166,13 +179,10 @@ public class Marshaller {
      */
     public static ClientPacket unmarshalService5(int requestID, byte[] input) {
         // Convert the next 4 bytes into the length of the file path
-        int filePathLength = 0;
-        for (int i = 8; i < 12; i++) {
-            filePathLength = (filePathLength << 8) | (input[i] & 0xff);
-        }
+        int filePathLength = unmarshalInt(input, 8);
 
         // Convert the next filePathLength bytes into the file path
-        String filePath = new String(input, 12, filePathLength);
+        String filePath = unmarshalString(input, 12, filePathLength);
 
         return new ClientPacket(requestID, 5, filePath, new ClientPayload());
     }
@@ -188,6 +198,13 @@ public class Marshaller {
             c[i - startIndex] = (char) (b[i]);
         }
         return new String(c);
+    }
+
+    public static long unmarshalLong(byte [] b, int startIndex) {
+        return ((long) (b[startIndex] & 0xFF) << 56) | ((long) (b[startIndex + 1] & 0xFF) << 48)
+                | ((long) (b[startIndex + 2] & 0xFF) << 40) | ((long) (b[startIndex + 3] & 0xFF) << 32)
+                | ((long) (b[startIndex + 4] & 0xFF) << 24) | ((long) (b[startIndex + 5] & 0xFF) << 16)
+                | ((long) (b[startIndex + 6] & 0xFF) << 8) | ((long) (b[startIndex + 7] & 0xFF) << 0);
     }
 
     // right-shift the integer by 24, 16, 8 and 0 bits respectively
