@@ -1,5 +1,65 @@
 #include "ServiceHandler.h"
 
+/**
+ * Displays the RFS interface menu.
+ */
+void ServiceHandler::displayInterface() {
+    std::cout << "\n-------------------------------------------\n";
+    std::cout << "Welcome to the RFS Interface\n\n";
+    std::cout << "Please select a service:\n";
+    std::cout << "1. Service 1 - Read from RFS\n";
+    std::cout << "2. Service 2 - Write to RFS\n";
+    std::cout << "3. Service 3 - Monitor for updates from RFS\n";
+    std::cout << "4. Service 4 - Get file size from RFS\n";
+    std::cout << "5. Service 5 - Delete from RFS\n";
+    std::cout << "6. Exit\n";
+    std::cout << "-------------------------------------------\n\n";
+    std::cout << "Your choice: ";
+}
+
+/**
+ * Executes the selected service based on the user's choice.
+ *
+ * @param choice The user's choice of service.
+ * @param s The UDPWindowsSocket object for communication.
+ * @param cache The Cache object for caching responses.
+ * @param requestId The ID of the request.
+ * @return 1 if the user chooses to exit, 0 otherwise.
+ */
+int ServiceHandler::chooseService(int choice, UDPWindowsSocket s, Cache* cache,
+                                  int* requestId) {
+    switch (choice) {
+        case 1:
+            service1(s, cache, requestId);
+            break;
+        case 2:
+            service2(s, requestId);
+            break;
+        case 3:
+            service3(s, requestId);
+            break;
+        case 4:
+            service4(s, requestId);
+            break;
+        case 5:
+            service5(s, requestId);
+            break;
+        case 6:
+            std::cout << "\nExiting...\n";
+            return 1;
+        default:
+            std::cout << "Invalid choice. Please try again.\n";
+    }
+    return 0;
+}
+
+/**
+ * Executes Service 1 - Read from RFS.
+ *
+ * @param s The UDPWindowsSocket object for communication.
+ * @param cache The Cache object for caching responses.
+ * @param requestId The ID of the request.
+ */
 void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
                               int* requestId) {
     std::cout << "\nRunning service 1 - Read from RFS...\n";
@@ -57,7 +117,6 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
 
     if (numBytesRecv == -1) {
         std::cout << "Error: No response from server\n";
-        std::cerr << errno << "\n";
         return;
     }
 
@@ -85,6 +144,12 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     }
 }
 
+/**
+ * Executes Service 2 - Write to RFS.
+ *
+ * @param s The UDPWindowsSocket object for communication.
+ * @param requestId The ID of the request.
+ */
 void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     std::cout << "\nRunning service 2 - Write to RFS...\n";
     const int SERVICE_ID = 2;
@@ -132,7 +197,6 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
 
     if (numBytesRecv == -1) {
         std::cout << "Error: No response from server\n";
-        std::cerr << errno << "\n";
         return;
     }
 
@@ -156,6 +220,12 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     std::cout << "Content: " << content << "\n";
 }
 
+/**
+ * Executes Service 3 - Monitor for updates from RFS.
+ *
+ * @param s The UDPWindowsSocket object for communication.
+ * @param requestId The ID of the request.
+ */
 void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     std::cout << "\nRunning service 3 - Monitor for updates from RFS...\n";
     const int SERVICE_ID = 3;
@@ -179,8 +249,7 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     // Buffer to store response
     std::vector<char> buffer(BUFLEN);
 
-    // Send actual data and receive response
-    // TODO: change to send and block for monitor interval
+    // Send and block for monitorInterval minutes
     s.sendPacket(data);
 
     int numBytesRecv = 0;
@@ -214,6 +283,12 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     }
 }
 
+/**
+ * Executes Service 4 - Get file size from RFS.
+ *
+ * @param s The UDPWindowsSocket object for communication.
+ * @param requestId The ID of the request.
+ */
 void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     std::cout << "\nRunning service 4 - Get file size from RFS...\n";
     const int SERVICE_ID = 4;
@@ -253,13 +328,15 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
 
     if (numBytesRecv == -1) {
         std::cout << "Error: No response from server\n";
-        std::cerr << errno << "\n";
         return;
     }
 
     int responseId = Marshaller::unmarshalInt(buffer, 0);
     int status = Marshaller::unmarshalInt(buffer, 4);
-    int fileSize = Marshaller::unmarshalInt(buffer, 8);
+    int fileSize = Marshaller::unmarshalLong(buffer, 8);
+    int contentLength = Marshaller::unmarshalInt(buffer, 8);
+    std::string content =
+        Marshaller::unmarshalString(buffer, 12, contentLength);
 
     switch (status) {
         case 0:
@@ -272,9 +349,16 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
             std::cout << "Status: " << status << "\n";
             break;
     }
-    std::cout << "File size: " << fileSize << "\n";
+    std::cout << "File size: " << fileSize << " bytes\n";
+    std::cout << "Content: " << content << "\n";
 }
 
+/**
+ * Executes Service 5 - Delete from RFS.
+ *
+ * @param s The UDPWindowsSocket object for communication.
+ * @param requestId The ID of the request.
+ */
 void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
     std::cout << "\nRunning service 5 - Delete from RFS...\n";
     const int SERVICE_ID = 5;
@@ -314,13 +398,14 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
 
     if (numBytesRecv == -1) {
         std::cout << "Error: No response from server\n";
-        std::cerr << errno << "\n";
         return;
     }
 
-    // TODO: create a response packet class
     int responseId = Marshaller::unmarshalInt(buffer, 0);
     int status = Marshaller::unmarshalInt(buffer, 4);
+    int contentLength = Marshaller::unmarshalInt(buffer, 8);
+    std::string content =
+        Marshaller::unmarshalString(buffer, 12, contentLength);
 
     switch (status) {
         case 0:
@@ -333,4 +418,5 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
             std::cout << "Status: " << status << "\n";
             break;
     }
+    std::cout << "Content: " << content << "\n";
 }
