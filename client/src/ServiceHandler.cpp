@@ -272,6 +272,7 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
         std::string content =
             Marshaller::unmarshalString(buffer, 12, contentLength);
 
+        std::cout << "\nUpdate received from server!\n";
         switch (status) {
             case 0:
                 std::cout << "Status: Error\n";
