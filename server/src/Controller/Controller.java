@@ -1,6 +1,7 @@
 package src.Controller;
 
 import java.net.*;
+import java.util.Date;
 
 import src.Server;
 import src.Comms.ClientDetails;
@@ -8,6 +9,7 @@ import src.Marshaller.ClientPacket;
 import src.Marshaller.Marshaller;
 import src.Services.Service1;
 import src.Services.Service2;
+import src.Services.Service3;
 import src.Services.Service4;
 import src.Services.Service5;
 
@@ -16,19 +18,19 @@ public class Controller {
      * Process the request from the client
      * 
      * @param request     The request packet
-     * @param clientInput The unmarshalled client packet
+     * @param clientPacket The unmarshalled client packet
      */
-    public static void processRequest(DatagramPacket request, ClientPacket clientInput) {
-        int serviceID = clientInput.getServiceID();
+    public static void processRequest(DatagramPacket request, ClientPacket clientPacket) {
+        int serviceID = clientPacket.getServiceID();
         String filePath;
         int offset;
         int numBytes;
 
         switch (serviceID) {
             case 1:
-                filePath = clientInput.getFilePath();
-                offset = clientInput.getClientPayload().getOffset();
-                numBytes = clientInput.getClientPayload().getNumBytes();
+                filePath = clientPacket.getFilePath();
+                offset = clientPacket.getClientPayload().getOffset();
+                numBytes = clientPacket.getClientPayload().getNumBytes();
                 System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Read from file");
                 System.out.println("File path: " + filePath);
@@ -45,9 +47,9 @@ public class Controller {
                 }
                 break;
             case 2:
-                filePath = clientInput.getFilePath();
-                offset = clientInput.getClientPayload().getOffset();
-                byte[] bytesToInsert = clientInput.getClientPayload().getBytesToInsert();
+                filePath = clientPacket.getFilePath();
+                offset = clientPacket.getClientPayload().getOffset();
+                byte[] bytesToInsert = clientPacket.getClientPayload().getBytesToInsert();
                 System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Write to file");
                 System.out.println("File path: " + filePath);
@@ -60,9 +62,11 @@ public class Controller {
                 switch (code) {
                     case 200:
                         message += "Bytes written to file. ";
-                        message += "Written bytes: "
-                                + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
+                        message += "Written bytes: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
+                        service1 = new Service1(filePath);
+                        content = service1.readFullFile();
                         Controller.sendService2Response(request, 1, message);
+                        Controller.broadcastUpdate(filePath, content);
                         break;
                     case 400:
                         message += "Error writing to file. Offset exceeded file length.";
@@ -74,8 +78,19 @@ public class Controller {
                         break;
                 }
                 break;
+            case 3:
+                filePath = clientPacket.getFilePath();
+                Date expiryDate = clientPacket.getClientPayload().getExpiryDate();
+                int resposneID = clientPacket.getRequestID();
+                System.out.println("------------------ INFO ---------------------");
+                System.out.println("Service: Add client to monitor file");
+                System.out.println("File path: " + filePath);
+                Service3.addRecord(resposneID, request, filePath, expiryDate);
+                message = "Client added to monitor file.";
+                Controller.sendService3Response(request, 1, message);
+                break;
             case 4:
-                filePath = clientInput.getFilePath();
+                filePath = clientPacket.getFilePath();
                 System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Get file length in bytes");
                 System.out.println("File path: " + filePath);
@@ -91,7 +106,7 @@ public class Controller {
                 }
                 break;
             case 5:
-                filePath = clientInput.getFilePath();
+                filePath = clientPacket.getFilePath();
                 System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Delete file");
                 System.out.println("File path: " + filePath);
@@ -168,6 +183,33 @@ public class Controller {
     }
 
     /**
+     * Format:
+     *  responseID (4 bytes)
+     *  status (4 bytes)
+     *  message length (4 bytes)
+     *  message (variable length)
+     * @param request
+     * @param status
+     * @param message
+     */
+    public static void sendService3Response(DatagramPacket request, int status, String message) {
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int responseID = Server.getRequests().get(clientDetails);
+        System.out.println("-------------- Response packet --------------");
+        System.out.println("Response ID: " + responseID);
+        System.out.println("Status: " + status);
+        // Data packet
+        byte[] dataBuffer = Marshaller.marshal(responseID);
+        dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        int messageLength = message.length();
+        System.out.println("Message length: " + messageLength);
+        dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
+        System.out.println("Mesage: " + message);
+        dataBuffer = Marshaller.appendString(dataBuffer, message);
+        Server.sendReply(request, dataBuffer);
+    }
+
+    /**
      * Format
      * responseID (4 bytes)
      * status (4 bytes)
@@ -225,8 +267,38 @@ public class Controller {
         System.out.println("Message: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
         Server.sendReply(request, dataBuffer);
+    }
 
-        System.out.println(Marshaller.unmarshalInt(dataBuffer, 8));
-        System.out.println(Marshaller.unmarshalString(dataBuffer, 12, messageLength));
+    /**
+     * Broadcast the update to all the clients monitoring the file
+     * Format:
+     *  responseID (4 bytes)
+     *  status (4 bytes)
+     *  content length (4 bytes)
+     *  content (variable length)
+     * @param filePath  The file path that has been changed
+     * @param content   The content of the file after the update
+     */
+    public static void broadcastUpdate(String filePath, String content) {
+        // Remove all the expired client before broadcasting
+        Service3.checkExpiry();
+
+        for (DatagramPacket request : Service3.getClientRecords().keySet()) {
+            System.out.println("Request: " + request.getAddress() + ":" + request.getPort());
+            Service3.Service3Record record = Service3.getClientRecords().get(request);
+            if (record.getFilePath().equals(filePath)) {
+                System.out.println("Broadcasting update to client: " + request.getAddress() + ":" + request.getPort());
+                int responseID = record.getResponseID();
+                int status = 1;
+                byte[] dataBuffer = Marshaller.marshal(responseID);
+                dataBuffer = Marshaller.appendInt(dataBuffer, status);
+                int contentLength = content.length();
+                System.out.println("Content length: " + contentLength);
+                dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
+                System.out.println("Content: " + content);
+                dataBuffer = Marshaller.appendString(dataBuffer, content);
+                Server.sendReply(request, dataBuffer);
+            }
+        }
     }
 }

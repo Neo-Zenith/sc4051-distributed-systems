@@ -8,7 +8,7 @@ import java.net.InetAddress;
 import java.util.Date;
 import java.util.Calendar;
 
-public class Client {
+public class Client2 {
     static int port = 2222;
     static String SERVER = "localhost"; 
 
@@ -25,22 +25,13 @@ public class Client {
         return x.getBytes();
     }
 
-    public static byte[] marshal(long x) {
+    // Marshal Date into 3 bytes, first 15 bits is year, next 4 bits is month, last 5 bits is day
+    public static byte[] marshal(int year, int month, int day) {
         return new byte[] {
-                (byte) (x >> 56),
-                (byte) (x >> 48),
-                (byte) (x >> 40),
-                (byte) (x >> 32),
-                (byte) (x >> 24),
-                (byte) (x >> 16),
-                (byte) (x >> 8),
-                (byte) (x >> 0)
+                (byte) (year >> 7),
+                (byte) (year << 1 | month >> 3),
+                (byte) (month << 5 | day)
         };
-    }
-
-    // Marshal Date into long
-    public static byte[] marshal(Date x) {
-        return marshal(x.getTime());
     }
 
     public static int unmarshalInt(byte[] x, int startIndex) {
@@ -87,7 +78,9 @@ public class Client {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             outputStream.write(a);
-            outputStream.write(marshal(b));
+            Calendar c = Calendar.getInstance();
+            c.setTime(b);
+            outputStream.write(marshal(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE)));
             return outputStream.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,23 +105,23 @@ public class Client {
 
         try {
             int requestID = 0;
-            int serviceID = 3;
+            int serviceID = 2;
             String path = "/Users/leejuin/Documents/GitHub/sc4051-distributed-systems/server/src/data.txt";
-            //int offset = 5;
-            //String contentToInsert = "Hello World! This should be inserted into the file";
-            //int contentByteLength = marshal(contentToInsert).length;
+            int offset = 5;
+            String contentToInsert = "Hello World! This should be inserted into the file";
+            int contentByteLength = marshal(contentToInsert).length;
 
             byte[] data = marshal(requestID);
             System.out.println(serviceID);
             data = joinByteArray(data, serviceID);
             data = joinByteArray(data, path.length());
             data = joinByteArray(data, path);
-            Calendar c = Calendar.getInstance();
-            c.set(2024, 2, 6, 16, 43, 0);
-            data = joinByteArray(data, c.getTime());
-            //data = joinByteArray(data, offset);
-            //data = joinByteArray(data, contentByteLength);
-            //data = joinByteArray(data, contentToInsert);
+            // Calendar c = Calendar.getInstance();
+            // c.set(2024, 10, 1);
+            // data = joinByteArray(data, c.getTime());
+            data = joinByteArray(data, offset);
+            data = joinByteArray(data, contentByteLength);
+            data = joinByteArray(data, contentToInsert);
             System.out.println("Content to send: " + data);
 
             // Send request

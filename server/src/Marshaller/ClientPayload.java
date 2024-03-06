@@ -1,9 +1,12 @@
 package src.Marshaller;
 
+import java.util.Date;
+
 public class ClientPayload {
     private int offset;
     private int numBytes;
     private byte[] bytesToInsert;
+    private Date expiryDate;
 
     /**
      * Constructor for the payload for Service 1
@@ -26,6 +29,14 @@ public class ClientPayload {
     }
 
     /**
+     * Constructor for the payload for Service 3
+     * @param expiryDate    expiry date for monitoring
+     */
+    public ClientPayload(Date expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    /**
      * Default constructor
      */
     public ClientPayload() {}
@@ -40,5 +51,9 @@ public class ClientPayload {
 
     public byte[] getBytesToInsert() {
         return bytesToInsert;
+    }
+
+    public Date getExpiryDate() {
+        return expiryDate;
     }
 }
