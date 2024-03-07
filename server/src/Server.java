@@ -99,9 +99,9 @@ public class Server {
                 System.out.println("--------------- Request packet --------------");
                 System.out.println("Request ID: " + clientPacket.getRequestID());
                 System.out.println("Service ID: " + clientPacket.getServiceID());
-                Controller.processRequest(request, clientPacket);
                 // Add request to the map
                 Server.updateRequest(clientDetails, clientPacket.getRequestID());
+                Controller.processRequest(request, clientPacket);
                 System.out.println("=============================================\n");
             }
         } catch (IOException e) {
@@ -126,11 +126,12 @@ public class Server {
     /**
      * Send a response to the client
      * 
+     * @param requestID     Request ID
      * @param clientDetails ClientDetails object containing the client's address and
      *                      port
      * @param replyBuffer   Buffer containing the response data
      */
-    public static void sendReply(DatagramPacket request, byte[] replyBuffer) {
+    public static void sendReply(int requestID, DatagramPacket request, byte[] replyBuffer) {
         try {
             // Simulate reply message lost from server to client
             if (Controller.shouldTimeout()) {
@@ -143,7 +144,6 @@ public class Server {
                     clientDetails.getPort());
             socket.send(reply);
             System.out.println("Reply sent");
-            int requestID = Server.getRequests().get(clientDetails);
             Server.addReplyMessage(clientDetails, requestID, replyBuffer);
             System.out.println("Stored reply for client: " + clientDetails.getAddress() + ":" + clientDetails.getPort());
         } catch (IOException e) {

@@ -27,18 +27,16 @@ public class Controller {
      */
     public static void processRequest(DatagramPacket request, ClientPacket clientPacket) {
         // When at-most-once semantics is used, check if the request ID has been processed
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int requestID = clientPacket.getRequestID();
+
         if (atMostOnce) {
-            ClientDetails clientDetails = Server.getClientDetails(request);
-            if (Server.getRequests().containsKey(clientDetails)) {
-                int requestID = Server.getRequests().get(clientDetails);
-                if (requestID == clientPacket.getRequestID()) {
-                    System.out.println("Request ID: " + requestID + " has been processed. Ignoring request.");
-                    byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
-                    Server.sendReply(request, storedReply);
-                    return;
-                }
+            if (Server.getReplyMessages(clientDetails) != null && Server.getReplyMessages(clientDetails).containsKey(requestID)) {
+                System.out.println("Request ID: " + requestID + " has been processed. Ignoring request.");
+                byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
+                Server.sendReply(requestID, request, storedReply);
+                return;
             }
-            Server.getRequests().put(clientDetails, clientPacket.getRequestID());
         }
         int serviceID = clientPacket.getServiceID();
         String filePath;
@@ -170,7 +168,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
         System.out.println("Content: " + content);
         dataBuffer = Marshaller.appendString(dataBuffer, content);
-        Server.sendReply(request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer);
     }
 
     /**
@@ -198,7 +196,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer);
     }
 
     /**
@@ -225,7 +223,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer);
     }
 
     /**
@@ -257,7 +255,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer);
     }
 
     /**
@@ -285,7 +283,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Message: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer);
     }
 
     /**
@@ -316,7 +314,7 @@ public class Controller {
                 dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
                 System.out.println("Content: " + content);
                 dataBuffer = Marshaller.appendString(dataBuffer, content);
-                Server.sendReply(request, dataBuffer);
+                Server.sendReply(responseID, request, dataBuffer);
             }
         }
     }
