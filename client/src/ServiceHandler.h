@@ -9,6 +9,13 @@
 
 #define BUFLEN 2048
 
+enum class PacketLossFrequency {
+    EVERY_2_REQUEST,
+    EVERY_4_REQUEST,
+    RANDOM,
+    NEVER
+};
+
 /**
  * @class ServiceHandler
  * @brief Handles various services provided by the client.
@@ -20,8 +27,15 @@
  */
 class ServiceHandler {
     static constexpr int TIMEOUT_DURATION = 5;  // Timeout duration in seconds
+    PacketLossFrequency packetLossFrequency;    // Packet loss frequency
+    int packetLossCounter;                      // Packet loss counter
 
    public:
+    /**
+     * @brief Constructs a new ServiceHandler object.
+     */
+    ServiceHandler(PacketLossFrequency packetLossFrequency);
+
     /**
      * @brief Displays the interface for selecting a service.
      */

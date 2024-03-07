@@ -18,15 +18,18 @@
  * @return int The exit status of the program.
  */
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cout << "Usage: " << argv[0] << " <freshness_interval>\n";
+    if (argc != 3) {
+        std::cout << "Usage: " << argv[0]
+                  << " <freshness_interval> <packet_loss_frequency>\n";
         return 1;
     }
 
     int freshnessInterval = atoi(argv[1]);
+    PacketLossFrequency packetLossFrequency =
+        PacketLossFrequency(atoi(argv[2]));
 
     UDPWindowsSocket udpSocket(SERVER, PORT);
-    ServiceHandler handler;
+    ServiceHandler handler(packetLossFrequency);
 
     try {
         int choice;

@@ -5,6 +5,11 @@
 #include <iostream>
 #include <string>
 
+ServiceHandler::ServiceHandler(PacketLossFrequency packetLossFrequency)
+    : packetLossFrequency(packetLossFrequency) {
+    packetLossCounter = 0;
+}
+
 /**
  * Displays the RFS interface menu.
  */
@@ -59,9 +64,31 @@ int ServiceHandler::chooseService(int choice, UDPWindowsSocket s, Cache* cache,
 }
 
 int ServiceHandler::simulatePacketLoss() {
-    if (rand() % 5 + 1 == 1) {
-        std::cout << "Packet loss -> retrying...\n";
-        return 1;
+    switch (packetLossFrequency) {
+        case PacketLossFrequency::NEVER:
+            return 0;
+        case PacketLossFrequency::EVERY_2_REQUEST:
+            packetLossCounter++;
+            if (packetLossCounter % 2 == 0) {
+                packetLossCounter = 0;
+                std::cout << "Packet loss -> retrying...\n";
+                return 1;
+            }
+            break;
+        case PacketLossFrequency::EVERY_4_REQUEST:
+            packetLossCounter++;
+            if (packetLossCounter % 4 == 0) {
+                packetLossCounter = 0;
+                std::cout << "Packet loss -> retrying...\n";
+                return 1;
+            }
+            break;
+        case PacketLossFrequency::RANDOM:
+            if (rand() % 5 == 1) {
+                std::cout << "Packet loss -> retrying...\n";
+                return 1;
+            }
+            break;
     }
     return 0;
 }
