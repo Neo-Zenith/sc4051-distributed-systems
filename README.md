@@ -44,7 +44,7 @@ This function marshals a `ClientPacket` into a byte array with the following for
 2. `serviceId` (4 bytes): The ID of the service.
 3. `filepath length` (4 bytes): The length of the filepath.
 4. `filepath` (variable length): The filepath itself.
-5. `monitorInterval` (4 bytes): The interval for monitoring.
+5. `expirationTime` (8 bytes): The interval for monitoring.
 
 > `marshalClientPacketS4`
 
@@ -73,5 +73,5 @@ At the `server` directory, run:
 ```
 javac src/*.java -d bin
 cd bin
-java src/Server
+java src/Server [at-most-once|at-least-once] [every-2-requests|every-4-requests|never|random]
 ```
