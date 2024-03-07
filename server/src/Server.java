@@ -132,6 +132,12 @@ public class Server {
      */
     public static void sendReply(DatagramPacket request, byte[] replyBuffer) {
         try {
+            // Simulate reply message lost from server to client
+            if (Controller.shouldTimeout()) {
+                System.out.println("Simulating reply message lost from server to client");
+                System.out.println("Reply not sent");
+                return;
+            }
             ClientDetails clientDetails = Server.getClientDetails(request);
             DatagramPacket reply = new DatagramPacket(replyBuffer, replyBuffer.length, clientDetails.getAddress(),
                     clientDetails.getPort());

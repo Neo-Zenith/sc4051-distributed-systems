@@ -26,12 +26,6 @@ public class Controller {
      * @param clientPacket The unmarshalled client packet
      */
     public static void processRequest(DatagramPacket request, ClientPacket clientPacket) {
-        // Simulate timeout
-        if (Controller.shouldTimeout()) {
-            System.out.println("Simulating timeout. Ignoring request.");
-            return;
-        }
-
         // When at-most-once semantics is used, check if the request ID has been processed
         if (atMostOnce) {
             ClientDetails clientDetails = Server.getClientDetails(request);
