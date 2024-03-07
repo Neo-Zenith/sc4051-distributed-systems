@@ -133,19 +133,20 @@ public class Server {
      */
     public static void sendReply(int requestID, DatagramPacket request, byte[] replyBuffer) {
         try {
+            ClientDetails clientDetails = Server.getClientDetails(request);
+            Server.addReplyMessage(clientDetails, requestID, replyBuffer);
+            System.out.println("Stored reply for client: " + clientDetails.getAddress() + ":" + clientDetails.getPort());
             // Simulate reply message lost from server to client
             if (Controller.shouldTimeout()) {
                 System.out.println("Simulating reply message lost from server to client");
                 System.out.println("Reply not sent");
                 return;
             }
-            ClientDetails clientDetails = Server.getClientDetails(request);
+            
             DatagramPacket reply = new DatagramPacket(replyBuffer, replyBuffer.length, clientDetails.getAddress(),
                     clientDetails.getPort());
             socket.send(reply);
             System.out.println("Reply sent");
-            Server.addReplyMessage(clientDetails, requestID, replyBuffer);
-            System.out.println("Stored reply for client: " + clientDetails.getAddress() + ":" + clientDetails.getPort());
         } catch (IOException e) {
             e.printStackTrace();
         }
