@@ -32,7 +32,7 @@ public class Controller {
 
         if (atMostOnce) {
             if (Server.getReplyMessages(clientDetails) != null && Server.getReplyMessages(clientDetails).containsKey(requestID)) {
-                System.out.println("Request ID: " + requestID + " has been processed. Ignoring request.");
+                System.out.println("Request ID: " + requestID + " has been processed. Retrieve result from store instead.");
                 byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
                 Server.sendReply(requestID, request, storedReply);
                 return;

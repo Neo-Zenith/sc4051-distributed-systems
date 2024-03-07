@@ -107,8 +107,8 @@ public class Client2 {
             int requestID = 0;
             int serviceID = 2;
             String path = "/Users/leejuin/Documents/GitHub/sc4051-distributed-systems/server/src/data.txt";
-            int offset = 5;
-            String contentToInsert = "Hello World! This should be inserted into the file";
+            int offset = 0;
+            String contentToInsert = "INSERT";
             int contentByteLength = marshal(contentToInsert).length;
 
             byte[] data = marshal(requestID);
@@ -143,8 +143,21 @@ public class Client2 {
             System.out.println("Status: " + status);
             System.out.println("Content received: " + content);
 
+            request = new DatagramPacket(data, data.length);
+            System.out.println("Sending data");
+            socket.send(request);
+
             byte[] buffer = new byte[65536];
             DatagramPacket request2 = new DatagramPacket(buffer, buffer.length);
+            // timeout after 5 seconds
+            socket.setSoTimeout(5000);
+            try {
+                socket.receive(request2);
+            } catch(IOException e) {
+                System.out.println("Timeout, resending request");
+            }
+
+            socket.send(request);
             socket.receive(request2);
             System.out.println("Data received from server");
             int status2 = unmarshalInt(buffer, 4);
