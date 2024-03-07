@@ -19,6 +19,8 @@
  * store and retrieve cached data.
  */
 class ServiceHandler {
+    static constexpr int TIMEOUT_DURATION = 5;  // Timeout duration in seconds
+
    public:
     /**
      * @brief Displays the interface for selecting a service.
@@ -35,6 +37,13 @@ class ServiceHandler {
      */
     int chooseService(int choice, UDPWindowsSocket s, Cache* cache,
                       int* requestId);
+
+    /**
+     * @brief Simulates packet loss.
+     * @return The status code indicating the success or failure of packet
+     * delivery.
+     */
+    int simulatePacketLoss();
 
     /**
      * @brief Performs service 1.

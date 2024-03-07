@@ -1,5 +1,10 @@
 #include "ServiceHandler.h"
 
+#include <chrono>
+#include <format>
+#include <iostream>
+#include <string>
+
 /**
  * Displays the RFS interface menu.
  */
@@ -53,6 +58,14 @@ int ServiceHandler::chooseService(int choice, UDPWindowsSocket s, Cache* cache,
     return 0;
 }
 
+int ServiceHandler::simulatePacketLoss() {
+    if (rand() % 5 + 1 == 1) {
+        std::cout << "Packet loss -> retrying...\n";
+        return 1;
+    }
+    return 0;
+}
+
 /**
  * Executes Service 1 - Read from RFS.
  *
@@ -91,7 +104,8 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     ClientPayload payload(offset, numBytes);
 
     // Create the packet and marshal it
-    ClientPacket packet(*requestId++, SERVICE_ID, filepath, &payload);
+    ClientPacket packet(*requestId, SERVICE_ID, filepath, &payload);
+    *requestId = *requestId + 1;
     std::vector<unsigned char> data = Marshaller::marshalClientPacketS1(packet);
 
     // Buffer to store response
@@ -102,15 +116,22 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     int retries = 0;
     while (true) {
         s.sendPacket(data);
-        numBytesRecv = s.receivePacket(buffer, 5);
+        // Simulate packet loss randomly
+        if (simulatePacketLoss()) {
+            retries++;
+            continue;
+        }
+        numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
-            std::cout << "Timeout " << retries + 1 << "-> retrying...\n";
+            std::cout << "Timeout " << retries + 1 << " -> retrying...\n";
             retries++;
 
             if (retries == 3) {
                 break;
             }
+
+            continue;
         }
         break;
     }
@@ -126,6 +147,7 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     std::string content =
         Marshaller::unmarshalString(buffer, 12, contentLength);
 
+    std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
         case 0:
             std::cout << "Status: Error\n";
@@ -171,7 +193,8 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     ClientPayload payload(offset, input);
 
     // Create the packet and marshal it
-    ClientPacket packet(*requestId++, SERVICE_ID, filepath, &payload);
+    ClientPacket packet(*requestId, SERVICE_ID, filepath, &payload);
+    *requestId = *requestId + 1;
     std::vector<unsigned char> data = Marshaller::marshalClientPacketS2(packet);
 
     // Buffer to store response
@@ -182,15 +205,22 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     int retries = 0;
     while (true) {
         s.sendPacket(data);
-        numBytesRecv = s.receivePacket(buffer, 5);
+        // Simulate packet loss randomly
+        if (simulatePacketLoss()) {
+            retries++;
+            continue;
+        }
+        numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
-            std::cout << "Timeout " << retries + 1 << "-> retrying...\n";
+            std::cout << "Timeout " << retries + 1 << " -> retrying...\n";
             retries++;
 
             if (retries == 3) {
                 break;
             }
+
+            continue;
         }
         break;
     }
@@ -206,6 +236,7 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     std::string content =
         Marshaller::unmarshalString(buffer, 12, contentLength);
 
+    std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
         case 0:
             std::cout << "Status: Error\n";
@@ -239,7 +270,7 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     std::cout << "Enter the monitor interval (in mins): ";
     std::cin >> monitorInterval;
 
-    auto startTime = std::chrono::steady_clock::now();
+    auto startTime = std::chrono::system_clock::now();
     auto endTime = startTime + std::chrono::minutes(monitorInterval);
     long expirationTime = static_cast<long>(
         std::chrono::time_point_cast<std::chrono::milliseconds>(endTime)
@@ -250,7 +281,8 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     ClientPayload payload(expirationTime);
 
     // Create the packet and marshal it
-    ClientPacket packet(*requestId++, SERVICE_ID, filepath, &payload);
+    ClientPacket packet(*requestId, SERVICE_ID, filepath, &payload);
+    *requestId = *requestId + 1;
     std::vector<unsigned char> data = Marshaller::marshalClientPacketS3(packet);
 
     // Buffer to store response
@@ -260,8 +292,9 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     s.sendPacket(data);
 
     int numBytesRecv = 0;
-    while (std::chrono::steady_clock::now() < endTime) {
-        numBytesRecv = s.receivePacket(buffer, 5);
+    while (std::chrono::system_clock::now() < endTime) {
+        std::cout << "Monitoring for updates...\n";
+        numBytesRecv = s.receivePacket(buffer, 1);
         if (numBytesRecv < 0) {
             continue;
         }
@@ -273,6 +306,7 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
             Marshaller::unmarshalString(buffer, 12, contentLength);
 
         std::cout << "\nUpdate received from server!\n";
+        std::cout << "Response ID: " << responseId << "\n";
         switch (status) {
             case 0:
                 std::cout << "Status: Error\n";
@@ -284,8 +318,9 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
                 std::cout << "Status: " << status << "\n";
                 break;
         }
-        std::cout << "Content: " << content << "\n";
+        std::cout << "Content: " << content << "\n\n";
     }
+    std::cout << "Monitoring complete!\n";
 }
 
 /**
@@ -307,7 +342,8 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     ClientPayload payload;
 
     // Create the packet and marshal it
-    ClientPacket packet(*requestId++, SERVICE_ID, filepath, &payload);
+    ClientPacket packet(*requestId, SERVICE_ID, filepath, &payload);
+    *requestId = *requestId + 1;
     std::vector<unsigned char> data = Marshaller::marshalClientPacketS4(packet);
 
     // Buffer to store response
@@ -318,15 +354,22 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     int retries = 0;
     while (true) {
         s.sendPacket(data);
-        numBytesRecv = s.receivePacket(buffer, 5);
+        // Simulate packet loss randomly
+        if (simulatePacketLoss()) {
+            retries++;
+            continue;
+        }
+        numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
-            std::cout << "Timeout " << retries + 1 << "-> retrying...\n";
+            std::cout << "Timeout " << retries + 1 << "  -> retrying...\n";
             retries++;
 
             if (retries == 3) {
                 break;
             }
+
+            continue;
         }
         break;
     }
@@ -343,6 +386,7 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     std::string content =
         Marshaller::unmarshalString(buffer, 12, contentLength);
 
+    std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
         case 0:
             std::cout << "Status: Error\n";
@@ -377,7 +421,8 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
     ClientPayload payload;
 
     // Create the packet and marshal it
-    ClientPacket packet(*requestId++, SERVICE_ID, filepath, &payload);
+    ClientPacket packet(*requestId, SERVICE_ID, filepath, &payload);
+    *requestId = *requestId + 1;
     std::vector<unsigned char> data = Marshaller::marshalClientPacketS4(packet);
 
     // Buffer to store response
@@ -388,15 +433,22 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
     int retries = 0;
     while (true) {
         s.sendPacket(data);
-        numBytesRecv = s.receivePacket(buffer, 5);
+        // Simulate packet loss randomly
+        if (simulatePacketLoss()) {
+            retries++;
+            continue;
+        }
+        numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
-            std::cout << "Timeout " << retries + 1 << "-> retrying...\n";
+            std::cout << "Timeout " << retries + 1 << " -> retrying...\n";
             retries++;
 
             if (retries == 3) {
                 break;
             }
+
+            continue;
         }
         break;
     }
@@ -412,6 +464,7 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
     std::string content =
         Marshaller::unmarshalString(buffer, 12, contentLength);
 
+    std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
         case 0:
             std::cout << "Status: Error\n";

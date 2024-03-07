@@ -10,7 +10,7 @@
  */
 struct CachedResponse {
     std::string content; /**< The content of the cached response. */
-    std::chrono::time_point<std::chrono::steady_clock>
+    std::chrono::time_point<std::chrono::system_clock>
         expirationTime; /**< The expiration time of the cached response. */
 };
 

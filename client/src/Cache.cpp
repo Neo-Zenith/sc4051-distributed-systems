@@ -28,7 +28,7 @@ CachedResponse* Cache::checkCache(const std::string& path, int offset,
     }
 
     // Check if the cached response has expired
-    if (std::chrono::steady_clock::now() > it->second.expirationTime) {
+    if (std::chrono::system_clock::now() > it->second.expirationTime) {
         return nullptr;
     }
 
@@ -46,7 +46,7 @@ void Cache::insertIntoCache(const std::string& path, int offset, int numBytes,
                             const std::string& content) {
     std::string hash = generateHash(path, offset, numBytes);
     CachedResponse response = {content,
-                               std::chrono::steady_clock::now() +
+                               std::chrono::system_clock::now() +
                                    std::chrono::minutes(freshnessInterval)};
     cache[hash] = response;
 }
