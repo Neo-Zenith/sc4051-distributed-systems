@@ -7,6 +7,7 @@ import src.Server;
 import src.Comms.ClientDetails;
 import src.Marshaller.ClientPacket;
 import src.Marshaller.Marshaller;
+import src.Server.TimeoutFrequency;
 import src.Services.Service1;
 import src.Services.Service2;
 import src.Services.Service3;
@@ -14,6 +15,10 @@ import src.Services.Service4;
 import src.Services.Service5;
 
 public class Controller {
+    private static boolean atMostOnce;
+    private static TimeoutFrequency timeoutFrequency;
+    private static int timeoutCounter = 0;
+
     /**
      * Process the request from the client
      * 
@@ -21,6 +26,26 @@ public class Controller {
      * @param clientPacket The unmarshalled client packet
      */
     public static void processRequest(DatagramPacket request, ClientPacket clientPacket) {
+        // Simulate timeout
+        if (Controller.shouldTimeout()) {
+            System.out.println("Simulating timeout. Ignoring request.");
+            return;
+        }
+
+        // When at-most-once semantics is used, check if the request ID has been processed
+        if (atMostOnce) {
+            ClientDetails clientDetails = Server.getClientDetails(request);
+            if (Server.getRequests().containsKey(clientDetails)) {
+                int requestID = Server.getRequests().get(clientDetails);
+                if (requestID == clientPacket.getRequestID()) {
+                    System.out.println("Request ID: " + requestID + " has been processed. Ignoring request.");
+                    byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
+                    Server.sendReply(request, storedReply);
+                    return;
+                }
+            }
+            Server.getRequests().put(clientDetails, clientPacket.getRequestID());
+        }
         int serviceID = clientPacket.getServiceID();
         String filePath;
         int offset;
@@ -299,6 +324,57 @@ public class Controller {
                 dataBuffer = Marshaller.appendString(dataBuffer, content);
                 Server.sendReply(request, dataBuffer);
             }
+        }
+    }
+
+    /**
+     * Set the at-most-once semantics
+     * 
+     * @param atMostOnce The at-most-once semantics
+     */
+    public static void setAtMostOnce(boolean atMostOnce) {
+        Controller.atMostOnce = atMostOnce;
+    }
+
+    /**
+     * Set the timeout frequency
+     * 
+     * @param timeoutFrequency The timeout frequency
+     */
+    public static void setTimeoutFrequency(TimeoutFrequency timeoutFrequency) {
+        Controller.timeoutFrequency = timeoutFrequency;
+    }
+
+    /**
+     * Check if the request should timeout
+     * 
+     * @return true if the request should timeout, false otherwise
+     */
+    public static boolean shouldTimeout() {
+        if (Controller.timeoutFrequency == TimeoutFrequency.NEVER) {
+            return false;
+        } else if (Controller.timeoutFrequency == TimeoutFrequency.EVERY_2_REQUESTS) {
+            Controller.timeoutCounter++;
+            if (Controller.timeoutCounter == 2) {
+                Controller.timeoutCounter = 0;
+                return true;
+            }
+            return false;
+        } else if (Controller.timeoutFrequency == TimeoutFrequency.EVERY_4_REQUESTS) {
+            Controller.timeoutCounter++;
+            if (Controller.timeoutCounter == 4) {
+                Controller.timeoutCounter = 0;
+                return true;
+            }
+            return false;
+        } else if (Controller.timeoutFrequency == TimeoutFrequency.RANDOM) {
+            int random = (int) (Math.random() * 100);
+            if (random < 10) {
+                return true;
+            }
+            return false;
+        } else {
+            return false;
         }
     }
 }
