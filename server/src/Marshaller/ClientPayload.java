@@ -1,11 +1,26 @@
-package src.Marshaller;
+package src.marshaller;
 
 import java.util.Date;
 
+/**
+ * Class to store the payload for the client's request specific for a service
+ */
 public class ClientPayload {
+    /**
+     * The offset to start reading from (only for Service 1 and 2)
+     */
     private int offset;
+    /**
+     * The number of bytes to read (only for Service 1)
+     */
     private int numBytes;
+    /**
+     * The bytes to insert (only for Service 2)
+     */
     private byte[] bytesToInsert;
+    /**
+     * The expiry date for monitoring (only for Service 3)
+     */
     private Date expiryDate;
 
     /**
@@ -37,22 +52,38 @@ public class ClientPayload {
     }
 
     /**
-     * Default constructor
+     * Default constructor for service 4 and 5
      */
     public ClientPayload() {}
 
+    /**
+     * Getter method for the offset
+     * @return  The offset
+     */
     public int getOffset() {
         return offset;
     }
 
+    /**
+     * Getter method for the number of bytes
+     * @return  The number of bytes
+     */
     public int getNumBytes() {
         return numBytes;
     }
 
+    /**
+     * Getter method for the bytes to insert
+     * @return  The bytes to insert
+     */
     public byte[] getBytesToInsert() {
         return bytesToInsert;
     }
 
+    /**
+     * Getter method for the expiry date
+     * @return  The expiry date
+     */
     public Date getExpiryDate() {
         return expiryDate;
     }

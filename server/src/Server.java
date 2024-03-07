@@ -4,26 +4,63 @@ import java.io.IOException;
 import java.net.*;
 import java.util.HashMap;
 
-import src.Comms.ClientDetails;
-import src.Controller.Controller;
-import src.Marshaller.ClientPacket;
-import src.Marshaller.Marshaller;
+import src.controller.Controller;
+import src.marshaller.ClientPacket;
+import src.marshaller.Marshaller;
+import src.comms.ClientDetails;
 
+/**
+ * Server<br>
+ * The server will receive requests from the client and process them accordingly<br>
+ * The server will then send a response back to the client<br>
+ * @author  Lee Juin
+ * @version 1.0
+ */
 public class Server {
+    /**
+     * Enum to specify the timeout frequency
+     */
     public enum TimeoutFrequency {
+        /**
+         * Timeout every 2 requests
+         */
         EVERY_2_REQUESTS,
+        /**
+         * Timeout every 4 requests
+         */
         EVERY_4_REQUESTS,
+        /**
+         * Random timeout of 10% probability
+         */
         RANDOM,
+        /**
+         * Never timeout
+         */
         NEVER
     }
 
+    /**
+     * The server socket
+     */
     private static DatagramSocket socket = null; // Initialise the server socket
+    
+    /**
+     * The port number
+     */
     private static int port = 2222;
-    // A map of client to their latest request ID
+    /** 
+     * A map of client to their latest request ID*
+     */
     private static HashMap<ClientDetails, Integer> requests = new HashMap<ClientDetails, Integer>();
-    // Store reply messages for at-most-once semantics
+    /**
+     * Store reply messages for at-most-once semantics
+     */
     private static HashMap<ClientDetails, HashMap<Integer, byte[]>> replyMessages = new HashMap<ClientDetails, HashMap<Integer, byte[]>>();
 
+    /**
+     * Main method to start the server
+     * @param args  Command line arguments
+     */
     public static void main(String[] args) {
         // Check if we are using at-most-once semantics or at-least-once semantics
         // First argument is the semantics
@@ -127,8 +164,7 @@ public class Server {
      * Send a response to the client
      * 
      * @param requestID     Request ID
-     * @param clientDetails ClientDetails object containing the client's address and
-     *                      port
+     * @param request       DatagramPacket encapsulating the client details
      * @param replyBuffer   Buffer containing the response data
      */
     public static void sendReply(int requestID, DatagramPacket request, byte[] replyBuffer) {

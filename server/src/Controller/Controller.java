@@ -1,22 +1,42 @@
-package src.Controller;
+package src.controller;
 
 import java.net.*;
 import java.util.Date;
 
 import src.Server;
-import src.Comms.ClientDetails;
-import src.Marshaller.ClientPacket;
-import src.Marshaller.Marshaller;
 import src.Server.TimeoutFrequency;
-import src.Services.Service1;
-import src.Services.Service2;
-import src.Services.Service3;
-import src.Services.Service4;
-import src.Services.Service5;
+import src.comms.ClientDetails;
+import src.marshaller.ClientPacket;
+import src.marshaller.Marshaller;
+import src.services.Service1;
+import src.services.Service2;
+import src.services.Service3;
+import src.services.Service4;
+import src.services.Service5;
 
+/** 
+ * The Controller class is responsible for:
+ *  - Processing the request from the client for each service <br/>
+ *  - Invoke the appropriate service <br/>
+ *  - Marshal service responses with the help of {@link Marshaller} <br/>
+ *  - Invoke {@link Server} method to send the response back to the client <br/>
+ * 
+ * @author Lee Juin
+ * @version 1.0
+ */
 public class Controller {
+    /**
+     * Flag to indicate if at-most-once semantics is used
+     */
     private static boolean atMostOnce;
+    /**
+     * The timeout frequency
+     */
     private static TimeoutFrequency timeoutFrequency;
+    /**
+     * The timeout counter to know when to timeout<br/>
+     * Not used when timeout frequency is NEVER or RANDOM
+     */
     private static int timeoutCounter = 0;
 
     /**
@@ -144,11 +164,12 @@ public class Controller {
     }
 
     /**
-     * Format:
-     * responseID (4 bytes)
-     * status (4 bytes)
-     * content length (4 bytes)
-     * content (variable length)
+     * Marshal the service 1's response before sending to the client <br/>
+     * Format:<br/>
+     *  - responseID (4 bytes)<br/>
+     *  - status (4 bytes)<br/>
+     *  - content length (4 bytes)<br/>
+     *  - content (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
@@ -172,11 +193,12 @@ public class Controller {
     }
 
     /**
-     * Format:
-     * responseID (4 bytes)
-     * status (4 bytes)
-     * message length (4 bytes)
-     * message (variable length)
+     * Marshal the service 2's response before sending to the client<br/>
+     * Format:<br/>
+     *  - responseID (4 bytes)<br/>
+     *  - status (4 bytes)<br/>
+     *  - message length (4 bytes)<br/>
+     *  - message (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
@@ -200,14 +222,15 @@ public class Controller {
     }
 
     /**
-     * Format:
-     *  responseID (4 bytes)
-     *  status (4 bytes)
-     *  message length (4 bytes)
-     *  message (variable length)
-     * @param request
-     * @param status
-     * @param message
+     * Marshal the service 3's response before sending to the client<br/>
+     * Format:<br/>
+     *  - responseID (4 bytes)<br/>
+     *  - status (4 bytes)<br/>
+     *  - message length (4 bytes)<br/>
+     *  - message (variable length)<br/>
+     * @param request   The request packet
+     * @param status    The status of the response (0 = error, 1 = success)
+     * @param message   The message of the response to be marshalled
      */
     public static void sendService3Response(DatagramPacket request, int status, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
@@ -227,12 +250,13 @@ public class Controller {
     }
 
     /**
-     * Format
-     * responseID (4 bytes)
-     * status (4 bytes)
-     * file size (8 bytes)
-     * message length (4 bytes)
-     * message (variable length)
+     * Marshal the service 4's response before sending to the client<br/>
+     * Format<br/>
+     *  - responseID (4 bytes)<br/>
+     *  - status (4 bytes)<br/>
+     *  - file size (8 bytes)<br/>
+     *  - message length (4 bytes)<br/>
+     *  - message (variable length)<br/>
      * 
      * @param request  The request packet
      * @param status   The status of the response (0 = error, 1 = success)
@@ -259,11 +283,12 @@ public class Controller {
     }
 
     /**
-     * Format:
-     * responseID (4 bytes)
-     * status (4 bytes)
-     * message length (4 bytes)
-     * message (variable length)
+     * Marshal the service 5's response before sending to the client<br/>
+     * Format:<br/>
+     *  - responseID (4 bytes)<br/>
+     *  - status (4 bytes)<br/>
+     *  - message length (4 bytes)<br/>
+     *  - message (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
@@ -287,12 +312,12 @@ public class Controller {
     }
 
     /**
-     * Broadcast the update to all the clients monitoring the file
-     * Format:
-     *  responseID (4 bytes)
-     *  status (4 bytes)
-     *  content length (4 bytes)
-     *  content (variable length)
+     * Broadcast the update to all the clients monitoring the file<br/>
+     * Format:<br/>
+     *  - responseID (4 bytes)<br/>
+     *  - status (4 bytes)<br/>
+     *  - content length (4 bytes)<br/>
+     *  - content (variable length)<br/>
      * @param filePath  The file path that has been changed
      * @param content   The content of the file after the update
      */

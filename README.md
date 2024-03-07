@@ -75,3 +75,11 @@ javac src/*.java -d bin
 cd bin
 java src/Server
 ```
+
+To build javadoc:
+
+At the `server` directory, run:
+
+```
+javadoc src src.controller src.comms src.marshaller src.services  -d doc/Javadoc -author -version -noqualifier all
+```

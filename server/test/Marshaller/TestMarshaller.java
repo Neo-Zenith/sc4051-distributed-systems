@@ -2,9 +2,10 @@ package test.Marshaller;
 
 import java.util.Arrays;
 
-import src.Marshaller.Marshaller;
 import org.junit.Assert;
 import org.junit.Test;
+
+import src.marshaller.Marshaller;
 
 public class TestMarshaller {
     @Test()
