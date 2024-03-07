@@ -95,7 +95,7 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     CachedResponse* cachedResponse =
         cache->checkCache(filepath, offset, numBytes);
     if (cachedResponse != nullptr) {
-        std::cout << "Cache hit!\n";
+        std::cout << "\nCache hit!\n";
         std::cout << "Content: " << cachedResponse->content << "\n";
         return;
     }
@@ -115,12 +115,11 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        s.sendPacket(data);
         // Simulate packet loss randomly
         if (simulatePacketLoss()) {
-            retries++;
             continue;
         }
+        s.sendPacket(data);
         numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
@@ -204,12 +203,11 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        s.sendPacket(data);
         // Simulate packet loss randomly
         if (simulatePacketLoss()) {
-            retries++;
             continue;
         }
+        s.sendPacket(data);
         numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
@@ -353,12 +351,11 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        s.sendPacket(data);
         // Simulate packet loss randomly
         if (simulatePacketLoss()) {
-            retries++;
             continue;
         }
+        s.sendPacket(data);
         numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
@@ -382,9 +379,9 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     int responseId = Marshaller::unmarshalInt(buffer, 0);
     int status = Marshaller::unmarshalInt(buffer, 4);
     int fileSize = Marshaller::unmarshalLong(buffer, 8);
-    int contentLength = Marshaller::unmarshalInt(buffer, 8);
+    int contentLength = Marshaller::unmarshalInt(buffer, 16);
     std::string content =
-        Marshaller::unmarshalString(buffer, 12, contentLength);
+        Marshaller::unmarshalString(buffer, 20, contentLength);
 
     std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
@@ -432,12 +429,11 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        s.sendPacket(data);
         // Simulate packet loss randomly
         if (simulatePacketLoss()) {
-            retries++;
             continue;
         }
+        s.sendPacket(data);
         numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
 
         if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
