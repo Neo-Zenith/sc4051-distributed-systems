@@ -239,8 +239,15 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     std::cout << "Enter the monitor interval (in mins): ";
     std::cin >> monitorInterval;
 
+    auto startTime = std::chrono::steady_clock::now();
+    auto endTime = startTime + std::chrono::minutes(monitorInterval);
+    long expirationTime = static_cast<long>(
+        std::chrono::time_point_cast<std::chrono::milliseconds>(endTime)
+            .time_since_epoch()
+            .count());
+
     // Create the payload
-    ClientPayload payload(monitorInterval);
+    ClientPayload payload(expirationTime);
 
     // Create the packet and marshal it
     ClientPacket packet(*requestId++, SERVICE_ID, filepath, &payload);
@@ -253,11 +260,8 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     s.sendPacket(data);
 
     int numBytesRecv = 0;
-    auto startTime = std::chrono::steady_clock::now();
-    auto endTime = startTime + std::chrono::minutes(monitorInterval);
-
     while (std::chrono::steady_clock::now() < endTime) {
-        numBytesRecv = s.receivePacket(buffer, 1000000);
+        numBytesRecv = s.receivePacket(buffer, 5);
         if (numBytesRecv < 0) {
             continue;
         }
@@ -268,6 +272,7 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
         std::string content =
             Marshaller::unmarshalString(buffer, 12, contentLength);
 
+        std::cout << "\nUpdate received from server!\n";
         switch (status) {
             case 0:
                 std::cout << "Status: Error\n";

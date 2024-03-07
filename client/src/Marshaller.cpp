@@ -68,7 +68,7 @@ std::vector<unsigned char> Marshaller::marshalClientPacketS3(
         2. serviceId (4 bytes)
         3. filepath length (4 bytes)
         4. filepath (variable length)
-        5. monitorInterval (4 bytes)
+        5. expirationInterval (8 bytes)
      */
     std::vector<unsigned char> byteArray;
     byteArray = appendInt(byteArray, clientPacket.getRequestId());
@@ -76,7 +76,7 @@ std::vector<unsigned char> Marshaller::marshalClientPacketS3(
     byteArray = appendInt(byteArray, clientPacket.getFilepath().length());
     byteArray = appendString(byteArray, clientPacket.getFilepath());
     byteArray =
-        appendInt(byteArray, clientPacket.getPayload()->getMonitorInterval());
+        appendLong(byteArray, clientPacket.getPayload()->getExpirationTime());
     return byteArray;
 }
 
