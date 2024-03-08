@@ -79,7 +79,11 @@ public class Controller {
                 if (content == null) {
                     content = "Error reading file. File not found.";
                     Controller.sendService1Response(request, 0, content);
-                } else {
+                } else if (content.equals("")) {
+                    content = "Error reading file. Offset exceeded file length.";
+                    Controller.sendService1Response(request, 0, content);
+                } 
+                else {
                     Controller.sendService1Response(request, 1, content);
                 }
                 break;
