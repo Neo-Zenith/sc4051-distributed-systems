@@ -84,7 +84,7 @@ int ServiceHandler::simulatePacketLoss() {
             }
             break;
         case PacketLossFrequency::RANDOM:
-            if (rand() % 5 == 1) {
+            if (rand() % 10 == 1) {
                 std::cout << "Packet loss -> retrying...\n";
                 return 1;
             }
