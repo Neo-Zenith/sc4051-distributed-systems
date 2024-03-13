@@ -100,8 +100,12 @@ public class Service1 {
     public String readFromFile() {
         try {
             RandomAccessFile file = new RandomAccessFile(filePath, "r");
+            if (file.length() < offset) {
+                file.close();
+                return "";
+            }
             file.seek(offset);
-            byte[] buffer = new byte[numBytes];
+            byte[] buffer = new byte[numBytes > file.length() - offset ? (int) (file.length() - offset) : numBytes];
             file.read(buffer);
             file.close();
             return new String(buffer);

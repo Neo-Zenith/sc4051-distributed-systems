@@ -1,4 +1,4 @@
-package test.Marshaller;
+package test.marshaller;
 
 import java.util.Arrays;
 

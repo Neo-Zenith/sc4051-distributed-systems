@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.io.File;
 import java.net.*;
 
 /**
@@ -105,9 +106,18 @@ public class Service3 {
      * @param filePath      The path to the file
      * @param expiryDate    The expiry date of the subscription
      */
-    public static void addRecord(int responseID, DatagramPacket request, String filePath, Date expiryDate) {
+    public static boolean addRecord(int responseID, DatagramPacket request, String filePath, Date expiryDate) {
+        // Verify filePath is a valid file
+        // If filePath is not a valid file, return false
+        // If filePath is a valid file, add the record to the clientRecords and return true
+        File file = new File(filePath);
+        if (!file.isFile()) {
+            return false;
+        }
+
         Service3Record record = new Service3Record(responseID, expiryDate, filePath);
         clientRecords.put(request, record);
+        return true;
     }
 
     /**

@@ -57,7 +57,7 @@ public class Controller {
                 System.out.println(
                         "Request ID: " + requestID + " has been processed. Retrieve result from store instead.");
                 byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
-                Server.sendReply(requestID, request, storedReply);
+                Server.sendReply(requestID, request, storedReply, false);
                 return;
             }
         }
@@ -81,6 +81,9 @@ public class Controller {
                 System.out.println("Content: " + content);
                 if (content == null) {
                     content = "Error reading file. File not found.";
+                    Controller.sendService1Response(request, 0, content);
+                } else if (content.equals("")) {
+                    content = "Error reading file. Offset exceeded file length.";
                     Controller.sendService1Response(request, 0, content);
                 } else {
                     Controller.sendService1Response(request, 1, content);
@@ -126,9 +129,15 @@ public class Controller {
                 System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Add client to monitor file");
                 System.out.println("File path: " + filePath);
-                Service3.addRecord(resposneID, request, filePath, expiryDate);
-                String message = "Client added to monitor file.";
-                Controller.sendService3Response(request, 1, message);
+                boolean recordAdded = Service3.addRecord(resposneID, request, filePath, expiryDate);
+                if (recordAdded) {
+                    message = "Client added to monitor file.";
+                    Controller.sendService3Response(request, 1, message);
+                } else {
+                    message = "File not found.";
+                    Controller.sendService3Response(request, 0, message);
+                }
+                ;
                 break;
             case 4:
                 filePath = clientPacket.getFilePath();
@@ -215,7 +224,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
         System.out.println("Content: " + content);
         dataBuffer = Marshaller.appendString(dataBuffer, content);
-        Server.sendReply(responseID, request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer, true);
     }
 
     /**
@@ -244,7 +253,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer, true);
     }
 
     /**
@@ -273,7 +282,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer, true);
     }
 
     /**
@@ -306,7 +315,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer, true);
     }
 
     /**
@@ -335,7 +344,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Message: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer);
+        Server.sendReply(responseID, request, dataBuffer, true);
     }
 
     /**
@@ -367,7 +376,7 @@ public class Controller {
                 dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
                 System.out.println("Content: " + content);
                 dataBuffer = Marshaller.appendString(dataBuffer, content);
-                Server.sendReply(responseID, request, dataBuffer);
+                Server.sendReply(responseID, request, dataBuffer, false);
             }
         }
     }
