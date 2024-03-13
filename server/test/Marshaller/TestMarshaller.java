@@ -65,7 +65,8 @@ public class TestMarshaller {
         String stringToAppend = "This is a test";
         byte[] appendedData = Marshaller.appendString(marshalledData, stringToAppend);
         String unmarshalledValue1 = Marshaller.unmarshalString(appendedData, 0, originalData.length());
-        String unmarshalledValue2 = Marshaller.unmarshalString(appendedData, originalData.length(), stringToAppend.length());
+        String unmarshalledValue2 = Marshaller.unmarshalString(appendedData, originalData.length(),
+                stringToAppend.length());
 
         System.out.println("Original data: " + originalData);
         System.out.println("String to append: " + stringToAppend);

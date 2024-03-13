@@ -6,12 +6,10 @@ import java.io.RandomAccessFile;
 
 /**
  * Service 5<br>
- * This service will delete a file<br>
- * The client will specify the file path and the server will delete the file<br>
- * The server will return true if the file is deleted successfully, false
- * otherwise<br>
- * This service also provides a method to delete from file given an offset and
- * number of bytes to delete<br>
+ * This service will delete from a file<br>
+ * The client will specify the file path, offset and number of bytes and the
+ * server will delete from the file<br>
+ * The server will delete the bytes from the file at the specified offset<br>
  * 
  * @author Lee Juin
  * @version 1.0
@@ -109,19 +107,6 @@ public class Service5 {
     }
 
     /**
-     * Method to delete the file
-     * 
-     * @return True if the file is deleted successfully, false otherwise
-     */
-    public boolean deleteFile() {
-        File file = new File(filePath);
-        if (!file.isFile()) {
-            return false;
-        }
-        return file.delete();
-    }
-
-    /**
      * Method to delete from file given an offset and number of bytes to delete
      * 
      * @param offset   The offset in the file
@@ -145,6 +130,7 @@ public class Service5 {
             file.seek(offset);
             file.write(remainingBytes);
             file.setLength(fileLength - numBytes);
+            file.close();
             return 200;
         } catch (IOException e) {
             return 404;

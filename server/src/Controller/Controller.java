@@ -66,6 +66,9 @@ public class Controller {
         int offset;
         int numBytes;
 
+        String message;
+        int code;
+
         switch (serviceID) {
             case 1:
                 filePath = clientPacket.getFilePath();
@@ -100,8 +103,8 @@ public class Controller {
                 System.out.println(
                         "Bytes to insert: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length));
                 Service2 service2 = new Service2(filePath, offset, bytesToInsert);
-                int code = service2.writeToFile();
-                String message = "";
+                code = service2.writeToFile();
+                message = "";
                 switch (code) {
                     case 200:
                         message += "Bytes written to file. ";
@@ -172,11 +175,11 @@ public class Controller {
                 // message += "Error deleting file. File not found.";
                 // Controller.sendService5Response(request, 0, message);
                 // }
-                int code = service5.deleteFromFile();
-                String message = "";
+                code = service5.deleteFromFile();
+                message = "";
                 switch (code) {
                     case 200:
-                        message += "Bytes deleted from file. ";
+                        message += numBytes + " Bytes deleted from file. ";
                         service1 = new Service1(filePath);
                         content = service1.readFullFile();
                         message += "Updated file: " + content;
