@@ -126,9 +126,15 @@ public class Controller {
                 System.out.println("------------------ INFO ---------------------");
                 System.out.println("Service: Add client to monitor file");
                 System.out.println("File path: " + filePath);
-                Service3.addRecord(resposneID, request, filePath, expiryDate);
-                message = "Client added to monitor file.";
-                Controller.sendService3Response(request, 1, message);
+                boolean recordAdded = Service3.addRecord(resposneID, request, filePath, expiryDate);
+                if (recordAdded) {
+                    message = "Client added to monitor file.";
+                    Controller.sendService3Response(request, 1, message);
+                }
+                else {
+                    message = "File not found.";
+                    Controller.sendService3Response(request, 0, message);
+                };
                 break;
             case 4:
                 filePath = clientPacket.getFilePath();
