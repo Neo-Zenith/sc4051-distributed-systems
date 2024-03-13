@@ -14,12 +14,12 @@ import src.services.Service3;
 import src.services.Service4;
 import src.services.Service5;
 
-/** 
+/**
  * The Controller class is responsible for:
- *  - Processing the request from the client for each service <br/>
- *  - Invoke the appropriate service <br/>
- *  - Marshal service responses with the help of {@link Marshaller} <br/>
- *  - Invoke {@link Server} method to send the response back to the client <br/>
+ * - Processing the request from the client for each service <br/>
+ * - Invoke the appropriate service <br/>
+ * - Marshal service responses with the help of {@link Marshaller} <br/>
+ * - Invoke {@link Server} method to send the response back to the client <br/>
  * 
  * @author Lee Juin
  * @version 1.0
@@ -42,17 +42,20 @@ public class Controller {
     /**
      * Process the request from the client
      * 
-     * @param request     The request packet
+     * @param request      The request packet
      * @param clientPacket The unmarshalled client packet
      */
     public static void processRequest(DatagramPacket request, ClientPacket clientPacket) {
-        // When at-most-once semantics is used, check if the request ID has been processed
+        // When at-most-once semantics is used, check if the request ID has been
+        // processed
         ClientDetails clientDetails = Server.getClientDetails(request);
         int requestID = clientPacket.getRequestID();
 
         if (atMostOnce) {
-            if (Server.getReplyMessages(clientDetails) != null && Server.getReplyMessages(clientDetails).containsKey(requestID)) {
-                System.out.println("Request ID: " + requestID + " has been processed. Retrieve result from store instead.");
+            if (Server.getReplyMessages(clientDetails) != null
+                    && Server.getReplyMessages(clientDetails).containsKey(requestID)) {
+                System.out.println(
+                        "Request ID: " + requestID + " has been processed. Retrieve result from store instead.");
                 byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
                 Server.sendReply(requestID, request, storedReply);
                 return;
@@ -99,7 +102,8 @@ public class Controller {
                 switch (code) {
                     case 200:
                         message += "Bytes written to file. ";
-                        message += "Written bytes: " + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
+                        message += "Written bytes: "
+                                + Marshaller.unmarshalString(bytesToInsert, 0, bytesToInsert.length);
                         service1 = new Service1(filePath);
                         content = service1.readFullFile();
                         Controller.sendService2Response(request, 1, message);
@@ -123,7 +127,7 @@ public class Controller {
                 System.out.println("Service: Add client to monitor file");
                 System.out.println("File path: " + filePath);
                 Service3.addRecord(resposneID, request, filePath, expiryDate);
-                message = "Client added to monitor file.";
+                String message = "Client added to monitor file.";
                 Controller.sendService3Response(request, 1, message);
                 break;
             case 4:
@@ -144,18 +148,40 @@ public class Controller {
                 break;
             case 5:
                 filePath = clientPacket.getFilePath();
+                offset = clientPacket.getClientPayload().getOffset();
+                numBytes = clientPacket.getClientPayload().getNumBytes();
                 System.out.println("------------------ INFO ---------------------");
-                System.out.println("Service: Delete file");
+                System.out.println("Service: Delete from file");
                 System.out.println("File path: " + filePath);
-                Service5 service5 = new Service5(filePath);
-                boolean deleted = service5.deleteFile();
-                message = "";
-                if (deleted) {
-                    message += "File deleted.";
-                    Controller.sendService5Response(request, 1, message);
-                } else {
-                    message += "Error deleting file. File not found.";
-                    Controller.sendService5Response(request, 0, message);
+                Service5 service5 = new Service5(filePath, offset, numBytes);
+                // boolean deleted = service5.deleteFile();
+                // message = "";
+                // if (deleted) {
+                // message += "File deleted.";
+                // Controller.sendService5Response(request, 1, message);
+                // } else {
+                // message += "Error deleting file. File not found.";
+                // Controller.sendService5Response(request, 0, message);
+                // }
+                int code = service5.deleteFromFile();
+                String message = "";
+                switch (code) {
+                    case 200:
+                        message += "Bytes deleted from file. ";
+                        service1 = new Service1(filePath);
+                        content = service1.readFullFile();
+                        message += "Updated file: " + content;
+                        Controller.sendService5Response(request, 1, message);
+                        Controller.broadcastUpdate(filePath, content);
+                        break;
+                    case 400:
+                        message += "Error deleting from file. Invalid offset and numBytes.";
+                        Controller.sendService5Response(request, 0, message);
+                        break;
+                    case 404:
+                        message += "Error deleting from file. File not found.";
+                        Controller.sendService5Response(request, 0, message);
+                        break;
                 }
                 break;
             default:
@@ -166,10 +192,10 @@ public class Controller {
     /**
      * Marshal the service 1's response before sending to the client <br/>
      * Format:<br/>
-     *  - responseID (4 bytes)<br/>
-     *  - status (4 bytes)<br/>
-     *  - content length (4 bytes)<br/>
-     *  - content (variable length)<br/>
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - content length (4 bytes)<br/>
+     * - content (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
@@ -195,10 +221,10 @@ public class Controller {
     /**
      * Marshal the service 2's response before sending to the client<br/>
      * Format:<br/>
-     *  - responseID (4 bytes)<br/>
-     *  - status (4 bytes)<br/>
-     *  - message length (4 bytes)<br/>
-     *  - message (variable length)<br/>
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - message length (4 bytes)<br/>
+     * - message (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
@@ -224,13 +250,14 @@ public class Controller {
     /**
      * Marshal the service 3's response before sending to the client<br/>
      * Format:<br/>
-     *  - responseID (4 bytes)<br/>
-     *  - status (4 bytes)<br/>
-     *  - message length (4 bytes)<br/>
-     *  - message (variable length)<br/>
-     * @param request   The request packet
-     * @param status    The status of the response (0 = error, 1 = success)
-     * @param message   The message of the response to be marshalled
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - message length (4 bytes)<br/>
+     * - message (variable length)<br/>
+     * 
+     * @param request The request packet
+     * @param status  The status of the response (0 = error, 1 = success)
+     * @param message The message of the response to be marshalled
      */
     public static void sendService3Response(DatagramPacket request, int status, String message) {
         ClientDetails clientDetails = Server.getClientDetails(request);
@@ -252,11 +279,11 @@ public class Controller {
     /**
      * Marshal the service 4's response before sending to the client<br/>
      * Format<br/>
-     *  - responseID (4 bytes)<br/>
-     *  - status (4 bytes)<br/>
-     *  - file size (8 bytes)<br/>
-     *  - message length (4 bytes)<br/>
-     *  - message (variable length)<br/>
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - file size (8 bytes)<br/>
+     * - message length (4 bytes)<br/>
+     * - message (variable length)<br/>
      * 
      * @param request  The request packet
      * @param status   The status of the response (0 = error, 1 = success)
@@ -285,10 +312,10 @@ public class Controller {
     /**
      * Marshal the service 5's response before sending to the client<br/>
      * Format:<br/>
-     *  - responseID (4 bytes)<br/>
-     *  - status (4 bytes)<br/>
-     *  - message length (4 bytes)<br/>
-     *  - message (variable length)<br/>
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - message length (4 bytes)<br/>
+     * - message (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
@@ -314,12 +341,13 @@ public class Controller {
     /**
      * Broadcast the update to all the clients monitoring the file<br/>
      * Format:<br/>
-     *  - responseID (4 bytes)<br/>
-     *  - status (4 bytes)<br/>
-     *  - content length (4 bytes)<br/>
-     *  - content (variable length)<br/>
-     * @param filePath  The file path that has been changed
-     * @param content   The content of the file after the update
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - content length (4 bytes)<br/>
+     * - content (variable length)<br/>
+     * 
+     * @param filePath The file path that has been changed
+     * @param content  The content of the file after the update
      */
     public static void broadcastUpdate(String filePath, String content) {
         // Remove all the expired client before broadcasting

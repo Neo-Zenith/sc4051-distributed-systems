@@ -115,12 +115,16 @@ std::vector<unsigned char> Marshaller::marshalClientPacketS5(
         2. serviceId (4 bytes)
         3. filepath length (4 bytes)
         4. filepath (variable length)
+        5. offset (4 bytes)
+        6. numBytes (4 bytes)
      */
     std::vector<unsigned char> byteArray;
     byteArray = appendInt(byteArray, clientPacket.getRequestId());
     byteArray = appendInt(byteArray, clientPacket.getServiceId());
     byteArray = appendInt(byteArray, clientPacket.getFilepath().length());
     byteArray = appendString(byteArray, clientPacket.getFilepath());
+    byteArray = appendInt(byteArray, clientPacket.getPayload()->getOffset());
+    byteArray = appendInt(byteArray, clientPacket.getPayload()->getNumBytes());
     return byteArray;
 }
 

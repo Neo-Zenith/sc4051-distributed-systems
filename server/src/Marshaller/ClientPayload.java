@@ -7,11 +7,11 @@ import java.util.Date;
  */
 public class ClientPayload {
     /**
-     * The offset to start reading from (only for Service 1 and 2)
+     * The offset to start reading from (only for Service 1, 2 and 5)
      */
     private int offset;
     /**
-     * The number of bytes to read (only for Service 1)
+     * The number of bytes to read (only for Service 1 and 5)
      */
     private int numBytes;
     /**
@@ -24,9 +24,10 @@ public class ClientPayload {
     private Date expiryDate;
 
     /**
-     * Constructor for the payload for Service 1
-     * @param offset    offset to start reading from
-     * @param numBytes  number of bytes to read
+     * Constructor for the payload for Service 1 and 5
+     * 
+     * @param offset   offset to start reading from
+     * @param numBytes number of bytes to read
      */
     public ClientPayload(int offset, int numBytes) {
         this.offset = offset;
@@ -35,8 +36,9 @@ public class ClientPayload {
 
     /**
      * Constructor for the payload for Service 2
-     * @param offset            offset to start reading from
-     * @param bytesToInsert     bytes to insert
+     * 
+     * @param offset        offset to start reading from
+     * @param bytesToInsert bytes to insert
      */
     public ClientPayload(int offset, byte[] bytesToInsert) {
         this.offset = offset;
@@ -45,7 +47,8 @@ public class ClientPayload {
 
     /**
      * Constructor for the payload for Service 3
-     * @param expiryDate    expiry date for monitoring
+     * 
+     * @param expiryDate expiry date for monitoring
      */
     public ClientPayload(Date expiryDate) {
         this.expiryDate = expiryDate;
@@ -54,11 +57,13 @@ public class ClientPayload {
     /**
      * Default constructor for service 4 and 5
      */
-    public ClientPayload() {}
+    public ClientPayload() {
+    }
 
     /**
      * Getter method for the offset
-     * @return  The offset
+     * 
+     * @return The offset
      */
     public int getOffset() {
         return offset;
@@ -66,7 +71,8 @@ public class ClientPayload {
 
     /**
      * Getter method for the number of bytes
-     * @return  The number of bytes
+     * 
+     * @return The number of bytes
      */
     public int getNumBytes() {
         return numBytes;
@@ -74,7 +80,8 @@ public class ClientPayload {
 
     /**
      * Getter method for the bytes to insert
-     * @return  The bytes to insert
+     * 
+     * @return The bytes to insert
      */
     public byte[] getBytesToInsert() {
         return bytesToInsert;
@@ -82,7 +89,8 @@ public class ClientPayload {
 
     /**
      * Getter method for the expiry date
-     * @return  The expiry date
+     * 
+     * @return The expiry date
      */
     public Date getExpiryDate() {
         return expiryDate;

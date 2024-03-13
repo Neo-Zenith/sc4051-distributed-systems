@@ -17,11 +17,11 @@ void ServiceHandler::displayInterface() {
     std::cout << "\n-------------------------------------------\n";
     std::cout << "Welcome to the RFS Interface\n\n";
     std::cout << "Please select a service:\n";
-    std::cout << "1. Service 1 - Read from RFS\n";
-    std::cout << "2. Service 2 - Write to RFS\n";
-    std::cout << "3. Service 3 - Monitor for updates from RFS\n";
+    std::cout << "1. Service 1 - Read from RFS file\n";
+    std::cout << "2. Service 2 - Write to RFS file\n";
+    std::cout << "3. Service 3 - Monitor for updates from RFS file\n";
     std::cout << "4. Service 4 - Get file size from RFS\n";
-    std::cout << "5. Service 5 - Delete from RFS\n";
+    std::cout << "5. Service 5 - Delete from RFS file\n";
     std::cout << "6. Exit\n";
     std::cout << "-------------------------------------------\n\n";
     std::cout << "Your choice: ";
@@ -102,7 +102,7 @@ int ServiceHandler::simulatePacketLoss() {
  */
 void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
                               int* requestId) {
-    std::cout << "\nRunning service 1 - Read from RFS...\n";
+    std::cout << "\nRunning service 1 - Read from RFS file...\n";
     const int SERVICE_ID = 1;
 
     std::string filepath;
@@ -199,7 +199,7 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
  * @param requestId The ID of the request.
  */
 void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
-    std::cout << "\nRunning service 2 - Write to RFS...\n";
+    std::cout << "\nRunning service 2 - Write to RFS file...\n";
     const int SERVICE_ID = 2;
 
     std::string filepath;
@@ -283,7 +283,7 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
  * @param requestId The ID of the request.
  */
 void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
-    std::cout << "\nRunning service 3 - Monitor for updates from RFS...\n";
+    std::cout << "\nRunning service 3 - Monitor for updates from RFS file...\n";
     const int SERVICE_ID = 3;
 
     std::string filepath;
@@ -433,21 +433,29 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
  * @param requestId The ID of the request.
  */
 void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
-    std::cout << "\nRunning service 5 - Delete from RFS...\n";
+    std::cout << "\nRunning service 5 - Delete from RFS file...\n";
     const int SERVICE_ID = 5;
 
     std::string filepath;
+    int offset;
+    int numBytes;
 
     std::cout << "Enter the filepath to delete: ";
     std::cin >> filepath;
 
+    std::cout << "Enter the offset to start delete from: ";
+    std::cin >> offset;
+
+    std::cout << "Enter the number of bytes to delete: ";
+    std::cin >> numBytes;
+
     // Create the payload
-    ClientPayload payload;
+    ClientPayload payload(offset, numBytes);
 
     // Create the packet and marshal it
     ClientPacket packet(*requestId, SERVICE_ID, filepath, &payload);
     *requestId = *requestId + 1;
-    std::vector<unsigned char> data = Marshaller::marshalClientPacketS4(packet);
+    std::vector<unsigned char> data = Marshaller::marshalClientPacketS5(packet);
 
     // Buffer to store response
     std::vector<char> buffer(BUFLEN);
