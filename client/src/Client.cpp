@@ -18,17 +18,22 @@
  * @return int The exit status of the program.
  */
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        std::cout << "Usage: " << argv[0]
-                  << " <freshness_interval> <packet_loss_frequency>\n";
+    if (argc != 4) {
+        std::cout
+            << "Usage: " << argv[0]
+            << "<server_addr> <freshness_interval> <packet_loss_frequency>\n";
         return 1;
     }
 
-    int freshnessInterval = atoi(argv[1]);
+    std::string server_addr = argv[1];
+    if (server_addr == "localhost") {
+        server_addr = SERVER;
+    }
+    int freshnessInterval = atoi(argv[2]);
     PacketLossFrequency packetLossFrequency =
-        PacketLossFrequency(atoi(argv[2]));
+        PacketLossFrequency(atoi(argv[3]));
 
-    UDPWindowsSocket udpSocket(SERVER, PORT);
+    UDPWindowsSocket udpSocket(server_addr, PORT);
     ServiceHandler handler(packetLossFrequency);
 
     try {
