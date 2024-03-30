@@ -157,6 +157,8 @@ public class Marshaller {
         calendar.setTimeInMillis(expiryDateInMillis);
         Date expiryDate = calendar.getTime();
 
+        System.out.println("Expiry Date: " + expiryDate);
+
         return new ClientPacket(requestID, 3, filePath, new ClientPayload(expiryDate));
     }
 
