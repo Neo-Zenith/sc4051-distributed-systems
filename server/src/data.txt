@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 Hi
+=======
+Hello kai seong was here!
+>>>>>>> 8acaab0862e1199af144aff1ef34c4a021256d8c
