@@ -199,15 +199,17 @@ int Marshaller::unmarshalInt(const std::vector<char>& x, int startIndex) {
  * @param startIndex The starting index of the long integer in the byte array.
  * @return The unmarshaled long integer.
  */
-long Marshaller::unmarshalLong(const std::vector<char>& x, int startIndex) {
-    long result = static_cast<unsigned char>(x[startIndex]) << 56 |
-                  (static_cast<unsigned char>(x[startIndex + 1]) & 0xFF) << 48 |
-                  (static_cast<unsigned char>(x[startIndex + 2]) & 0xFF) << 40 |
-                  (static_cast<unsigned char>(x[startIndex + 3]) & 0xFF) << 32 |
-                  (static_cast<unsigned char>(x[startIndex + 4]) & 0xFF) << 24 |
-                  (static_cast<unsigned char>(x[startIndex + 5]) & 0xFF) << 16 |
-                  (static_cast<unsigned char>(x[startIndex + 6]) & 0xFF) << 8 |
-                  (static_cast<unsigned char>(x[startIndex + 7]) & 0xFF);
+long long Marshaller::unmarshalLong(const std::vector<char>& x,
+                                    int startIndex) {
+    long long result =
+        static_cast<unsigned char>(x[startIndex]) << 56 |
+        (static_cast<unsigned char>(x[startIndex + 1]) & 0xFF) << 48 |
+        (static_cast<unsigned char>(x[startIndex + 2]) & 0xFF) << 40 |
+        (static_cast<unsigned char>(x[startIndex + 3]) & 0xFF) << 32 |
+        (static_cast<unsigned char>(x[startIndex + 4]) & 0xFF) << 24 |
+        (static_cast<unsigned char>(x[startIndex + 5]) & 0xFF) << 16 |
+        (static_cast<unsigned char>(x[startIndex + 6]) & 0xFF) << 8 |
+        (static_cast<unsigned char>(x[startIndex + 7]) & 0xFF);
     return result;
 }
 

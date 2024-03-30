@@ -463,7 +463,7 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
 
     int responseId = Marshaller::unmarshalInt(buffer, 0);
     int status = Marshaller::unmarshalInt(buffer, 4);
-    int fileSize = Marshaller::unmarshalLong(buffer, 8);
+    long long fileSize = Marshaller::unmarshalLong(buffer, 8);
     int contentLength = Marshaller::unmarshalInt(buffer, 16);
     std::string content =
         Marshaller::unmarshalString(buffer, 20, contentLength);

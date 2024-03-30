@@ -87,7 +87,7 @@ class Marshaller {
      * @param startIndex The starting index of the data in the vector.
      * @return The unmarshalled long integer value.
      */
-    static long unmarshalLong(const std::vector<char>& x, int startIndex);
+    static long long unmarshalLong(const std::vector<char>& x, int startIndex);
 
     /**
      * @brief Unmarshals a string from a vector of char.
