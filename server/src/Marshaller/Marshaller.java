@@ -68,6 +68,8 @@ public class Marshaller {
      * - 4 bytes for service ID<br>
      * - 4 bytes for length of file path<br>
      * - variable length for file path<br>
+     * - 4 bytes for offset<br>
+     * - 4 bytes for number of bytes to read<br>
      * 
      * @param requestID request ID
      * @param input     byte array containing the request
