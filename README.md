@@ -8,7 +8,7 @@ At the `client` directory, run
 
 ```
 g++ -o client.exe src\*.cpp -lws2_32
-client <freshness_interval> <packet_loss_frequency>
+client <server_addr> <freshness_interval> <packet_loss_frequency>
 ```
 
 ### Marshalling of Client Packets
