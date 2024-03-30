@@ -109,8 +109,6 @@ public class Service5 {
     /**
      * Method to delete from file given an offset and number of bytes to delete
      * 
-     * @param offset   The offset in the file
-     * @param numBytes The number of bytes to delete
      * @return True if the bytes are deleted successfully, false otherwise
      */
     public int deleteFromFile() {
@@ -120,14 +118,14 @@ public class Service5 {
                 return 404;
             }
             long fileLength = fileObj.length();
-            if (offset < 0 || offset >= fileLength || numBytes <= 0 || offset + numBytes > fileLength) {
+            if (this.offset < 0 || this.offset >= fileLength || numBytes <= 0 || this.offset + numBytes > fileLength) {
                 return 400;
             }
             RandomAccessFile file = new RandomAccessFile(filePath, "rw");
-            byte[] remainingBytes = new byte[(int) (fileLength - offset - numBytes)];
-            file.seek(offset + numBytes);
+            byte[] remainingBytes = new byte[(int) (fileLength - this.offset - numBytes)];
+            file.seek(this.offset + numBytes);
             file.read(remainingBytes);
-            file.seek(offset);
+            file.seek(this.offset);
             file.write(remainingBytes);
             file.setLength(fileLength - numBytes);
             file.close();

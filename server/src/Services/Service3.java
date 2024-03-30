@@ -105,6 +105,7 @@ public class Service3 {
      * @param request       The request packet from the client
      * @param filePath      The path to the file
      * @param expiryDate    The expiry date of the subscription
+     * @return  True if the record is added successfully, false otherwise
      */
     public static boolean addRecord(int responseID, DatagramPacket request, String filePath, Date expiryDate) {
         // Verify filePath is a valid file
