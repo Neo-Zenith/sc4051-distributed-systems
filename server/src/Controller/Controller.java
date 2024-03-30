@@ -163,18 +163,9 @@ public class Controller {
                 offset = clientPacket.getClientPayload().getOffset();
                 numBytes = clientPacket.getClientPayload().getNumBytes();
                 System.out.println("------------------ INFO ---------------------");
-                System.out.println("Service: Delete from file");
+                System.out.println("Service: Delete bytes from file");
                 System.out.println("File path: " + filePath);
                 Service5 service5 = new Service5(filePath, offset, numBytes);
-                // boolean deleted = service5.deleteFile();
-                // message = "";
-                // if (deleted) {
-                // message += "File deleted.";
-                // Controller.sendService5Response(request, 1, message);
-                // } else {
-                // message += "Error deleting file. File not found.";
-                // Controller.sendService5Response(request, 0, message);
-                // }
                 code = service5.deleteFromFile();
                 message = "";
                 switch (code) {
@@ -364,7 +355,7 @@ public class Controller {
     public static void broadcastUpdate(String filePath, String content) {
         // Remove all the expired client before broadcasting
         Service3.checkExpiry();
-
+        System.out.println("------------------ Broadcasting update ------------------");
         for (DatagramPacket request : Service3.getClientRecords().keySet()) {
             System.out.println("Request: " + request.getAddress() + ":" + request.getPort());
             Service3.Service3Record record = Service3.getClientRecords().get(request);

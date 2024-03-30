@@ -171,9 +171,11 @@ public class Server {
     public static void sendReply(int requestID, DatagramPacket request, byte[] replyBuffer, boolean storeReply) {
         try {
             ClientDetails clientDetails = Server.getClientDetails(request);
-            if (storeReply)
+            if (storeReply) {
                 Server.addReplyMessage(clientDetails, requestID, replyBuffer);
-            System.out.println("Stored reply for client: " + clientDetails.getAddress() + ":" + clientDetails.getPort());
+                System.out.println("Stored reply for client: " + clientDetails.getAddress() + ":" + clientDetails.getPort());
+            }
+            
             // Simulate reply message lost from server to client
             if (Controller.shouldTimeout()) {
                 System.out.println("Simulating reply message lost from server to client");
