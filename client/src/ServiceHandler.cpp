@@ -1,7 +1,9 @@
 #include "ServiceHandler.h"
 
 #include <chrono>
+#include <ctime>
 #include <format>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -142,7 +144,7 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        // Simulate packet loss randomly
+        // Simulate packet loss
         if (simulatePacketLoss()) {
             continue;
         }
@@ -230,7 +232,7 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        // Simulate packet loss randomly
+        // Simulate packet loss
         if (simulatePacketLoss()) {
             continue;
         }
@@ -297,10 +299,18 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
 
     auto startTime = std::chrono::system_clock::now();
     auto endTime = startTime + std::chrono::minutes(monitorInterval);
-    long expirationTime = static_cast<long>(
-        std::chrono::time_point_cast<std::chrono::milliseconds>(endTime)
-            .time_since_epoch()
-            .count());
+    auto endTime_time_t = std::chrono::system_clock::to_time_t(endTime);
+    std::cout << "Expiration time: "
+              << std::put_time(std::localtime(&endTime_time_t),
+                               "%d-%m-%Y %H-%M-%S")
+              << std::endl;
+
+    long long expirationTime =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            endTime.time_since_epoch())
+            .count();
+
+    std::cout << "Expiration time: " << expirationTime << std::endl;
 
     // Create the payload
     ClientPayload payload(expirationTime);
@@ -313,10 +323,58 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     // Buffer to store response
     std::vector<char> buffer(BUFLEN);
 
-    // Send and block for monitorInterval minutes
-    s.sendPacket(data);
-
+    // Send packet
     int numBytesRecv = 0;
+    int retries = 0;
+    while (true) {
+        // Simulate packet loss
+        if (simulatePacketLoss()) {
+            continue;
+        }
+        s.sendPacket(data);
+        numBytesRecv = s.receivePacket(buffer, TIMEOUT_DURATION);
+
+        if (numBytesRecv == -1 && WSAGetLastError() == WSAETIMEDOUT) {
+            std::cout << "Timeout " << retries + 1 << " -> retrying...\n";
+            retries++;
+
+            if (retries == 3) {
+                break;
+            }
+
+            continue;
+        }
+        break;
+    }
+
+    if (numBytesRecv == -1) {
+        std::cout << "Error: No response from server\n";
+        return;
+    }
+
+    int responseId = Marshaller::unmarshalInt(buffer, 0);
+    int status = Marshaller::unmarshalInt(buffer, 4);
+    int contentLength = Marshaller::unmarshalInt(buffer, 8);
+    std::string content =
+        Marshaller::unmarshalString(buffer, 12, contentLength);
+
+    // ACK received
+    std::cout << "\nUpdate received from server!\n";
+    std::cout << "Response ID: " << responseId << "\n";
+    switch (status) {
+        case 0:
+            std::cout << "Status: Error\n";
+            break;
+        case 1:
+            std::cout << "Status: Success\n";
+            break;
+        default:
+            std::cout << "Status: " << status << "\n";
+            break;
+    }
+    std::cout << "Content: " << content << "\n\n";
+
+    // Block for monitorInterval minutes
     while (std::chrono::system_clock::now() < endTime) {
         std::cout << "Monitoring for updates...\n";
         numBytesRecv = s.receivePacket(buffer, 1);
@@ -378,7 +436,7 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        // Simulate packet loss randomly
+        // Simulate packet loss
         if (simulatePacketLoss()) {
             continue;
         }
@@ -464,7 +522,7 @@ void ServiceHandler::service5(UDPWindowsSocket s, int* requestId) {
     int numBytesRecv = 0;
     int retries = 0;
     while (true) {
-        // Simulate packet loss randomly
+        // Simulate packet loss
         if (simulatePacketLoss()) {
             continue;
         }

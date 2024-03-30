@@ -64,7 +64,7 @@ class Marshaller {
      * @param x The long integer to be marshalled.
      * @return A vector of unsigned char containing the marshalled data.
      */
-    static std::vector<unsigned char> marshal(long x);
+    static std::vector<unsigned char> marshal(long long x);
 
     /**
      * @brief Marshals a string into a vector of unsigned char.
@@ -116,8 +116,8 @@ class Marshaller {
      * @param x The long integer to be appended.
      * @return A new vector of unsigned char with the long integer appended.
      */
-    static std::vector<unsigned char> appendLong(
-        const std::vector<unsigned char>& byteArray, long x);
+    static std::vector<unsigned char> appendLongLong(
+        const std::vector<unsigned char>& byteArray, long long x);
 
     /**
      * @brief Appends a string to a vector of unsigned char.

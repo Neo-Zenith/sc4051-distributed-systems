@@ -75,8 +75,13 @@ std::vector<unsigned char> Marshaller::marshalClientPacketS3(
     byteArray = appendInt(byteArray, clientPacket.getServiceId());
     byteArray = appendInt(byteArray, clientPacket.getFilepath().length());
     byteArray = appendString(byteArray, clientPacket.getFilepath());
-    byteArray =
-        appendLong(byteArray, clientPacket.getPayload()->getExpirationTime());
+    byteArray = appendLongLong(byteArray,
+                               clientPacket.getPayload()->getExpirationTime());
+
+    // std::vector<unsigned char> tmp =
+    //     marshal(clientPacket.getPayload()->getExpirationTime());
+    // long expirationTime = unmarshalLong(tmp, 0);
+
     return byteArray;
 }
 
@@ -149,7 +154,7 @@ std::vector<unsigned char> Marshaller::marshal(int x) {
  * @param x The long integer to marshal.
  * @return The marshaled byte array.
  */
-std::vector<unsigned char> Marshaller::marshal(long x) {
+std::vector<unsigned char> Marshaller::marshal(long long x) {
     /*
         assuming big endian
         e.g x = 0x123456789ABCDEF0 -> {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE,
@@ -240,8 +245,8 @@ std::vector<unsigned char> Marshaller::appendInt(
  * @param x The long integer to append.
  * @return The new byte array with the long integer appended.
  */
-std::vector<unsigned char> Marshaller::appendLong(
-    const std::vector<unsigned char>& byteArray, long x) {
+std::vector<unsigned char> Marshaller::appendLongLong(
+    const std::vector<unsigned char>& byteArray, long long x) {
     std::vector<unsigned char> intBytes = marshal(x);
     std::vector<unsigned char> newByteArray;
     newByteArray.reserve(byteArray.size() + intBytes.size());
