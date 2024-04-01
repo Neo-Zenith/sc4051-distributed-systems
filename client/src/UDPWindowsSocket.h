@@ -1,8 +1,25 @@
 #ifndef UDP_WINDOWS_SOCKET_H
 #define UDP_WINDOWS_SOCKET_H
 
+/*
+    To ensure inet_pton is defined on Windows using MinGW
+    from
+    https://github.com/HaxeFoundation/hxcpp/commit/c95cbafe6ceb7bb7642dee8efcdb16fcf4d3907d
+*/
+#ifdef __GNUC__
+#if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x0600)
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+
+#include <Ws2tcpip.h>
 #include <winsock2.h>
-#include <ws2tcpip.h>
+
+extern "C" {
+WINSOCK_API_LINKAGE INT WSAAPI inet_pton(INT Family, PCSTR pszAddrString,
+                                         PVOID pAddrBuf);
+}
+#endif
 
 #include <iostream>
 #include <string>

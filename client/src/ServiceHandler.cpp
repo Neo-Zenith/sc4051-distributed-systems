@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <ctime>
-#include <format>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -214,7 +213,7 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     std::cout << "Enter the offset: ";
     std::cin >> offset;
 
-    std::cout << "Enter the number of bytes: ";
+    std::cout << "Enter the characters to be inserted: ";
     std::cin >> input;
 
     // Create the payload
@@ -300,10 +299,12 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     auto startTime = std::chrono::system_clock::now();
     auto endTime = startTime + std::chrono::minutes(monitorInterval);
     auto endTime_time_t = std::chrono::system_clock::to_time_t(endTime);
-    std::cout << "Expiration time: "
-              << std::put_time(std::localtime(&endTime_time_t),
-                               "%d-%m-%Y %H-%M-%S")
-              << std::endl;
+
+    // Requires C++ 13
+    // std::cout << "Expiration time: "
+    //           << std::put_time(std::localtime(&endTime_time_t),
+    //                            "%d-%m-%Y %H-%M-%S")
+    //           << std::endl;
 
     long long expirationTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(
