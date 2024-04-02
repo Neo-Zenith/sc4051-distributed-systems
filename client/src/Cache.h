@@ -18,9 +18,8 @@ struct CachedResponse {
     std::string content; /**< The content of the cached response. */
     std::chrono::time_point<std::chrono::system_clock>
         lastValidated; /**< Time when cache entry was last validated. */
-    std::chrono::time_point<std::chrono::system_clock>
-        lastModifiedClient; /**< Time when cache entry was last modified at
-                               server. */
+    unsigned long long lastModifiedClient; /**< Time when cache entry was last
+                                              modified at server. */
 };
 
 /**
@@ -59,7 +58,7 @@ class Cache {
      */
     void insertIntoCache(const std::string& path, int offset, int numBytes,
                          const std::string& content,
-                         std::time_t lastModifiedServer);
+                         unsigned long long lastModifiedServer);
 
     /**
      * @brief Removes a response from the cache with the specified path, offset,

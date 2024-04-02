@@ -174,8 +174,6 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     std::string content =
         Marshaller::unmarshalString(buffer, 20, contentLength);
 
-    std::time_t lastModified_time_t = static_cast<std::time_t>(lastModified);
-
     std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
         case 0:
@@ -185,11 +183,11 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
         case 1:
             std::cout << "Status: Success\n";
             std::cout << "Content: " << content << "\n";
-            std::cout << "Last modified: " << lastModified_time_t << std::endl;
+            std::cout << "Last modified: " << lastModified << std::endl;
 
             // Update cache
             cache->insertIntoCache(filepath, offset, numBytes, content,
-                                   lastModified_time_t);
+                                   lastModified);
             break;
         default:
             std::cout << "Status: " << status << "\n";

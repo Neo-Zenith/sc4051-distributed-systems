@@ -104,13 +104,11 @@ CachedResponse* Cache::checkCache(const std::string& path, int offset,
     }
     lastModifiedServer = lastModifiedTime;
 
-    if (std::chrono::system_clock::from_time_t(static_cast<std::time_t>(
-            lastModifiedServer)) == it->second.lastModifiedClient) {
+    if (lastModifiedServer == it->second.lastModifiedClient) {
         std::cout << "\nCache hit - not modified on server!\n";
         it->second.lastValidated = std::chrono::system_clock::now();
         return &(it->second);
-    } else if (std::chrono::system_clock::from_time_t(static_cast<std::time_t>(
-                   lastModifiedServer)) > it->second.lastModifiedClient) {
+    } else if (lastModifiedServer > it->second.lastModifiedClient) {
         std::cout << "\nCached response for (" << path << ", " << offset << ", "
                   << numBytes << ") expired\n";
         return nullptr;
@@ -126,15 +124,16 @@ CachedResponse* Cache::checkCache(const std::string& path, int offset,
  * @param offset The offset of the response.
  * @param numBytes The number of bytes in the response.
  * @param content The content of the response.
+ * @param lastModifiedServer The last modified time of the file in server.
  */
 void Cache::insertIntoCache(const std::string& path, int offset, int numBytes,
                             const std::string& content,
-                            std::time_t lastModifiedServer) {
+                            unsigned long long lastModifiedServer) {
     std::string hash = generateHash(path, offset, numBytes);
     CachedResponse response = {
         content,
         std::chrono::system_clock::now(),
-        std::chrono::system_clock::from_time_t(lastModifiedServer),
+        lastModifiedServer,
     };
     cache[hash] = response;
 }
