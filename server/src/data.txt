@@ -1,1 +1,1 @@
-fail  e dddd dddd cccBaAHello world!
+atest 5hello This is a Hello world!
