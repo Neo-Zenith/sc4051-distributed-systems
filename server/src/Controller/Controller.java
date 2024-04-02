@@ -57,7 +57,7 @@ public class Controller {
                 System.out.println(
                         "Request ID: " + requestID + " has been processed. Retrieve result from store instead.");
                 byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
-                Server.sendReply(requestID, request, storedReply, false);
+                Server.sendReply(requestID, request, storedReply, false, false);
                 return;
             }
         }
@@ -81,15 +81,16 @@ public class Controller {
                 System.out.println("Number of bytes: " + numBytes);
                 Service1 service1 = new Service1(filePath, offset, numBytes);
                 String content = service1.readFromFile();
+                long lastModifiedTime = service1.readFileLastUpdatedTimestamp();
                 System.out.println("Content: " + content);
                 if (content == null) {
                     content = "Error reading file. File not found.";
-                    Controller.sendService1Response(request, 0, content);
+                    Controller.sendService1Response(request, 0, lastModifiedTime, content);
                 } else if (content.equals("")) {
                     content = "Error reading file. Offset exceeded file length.";
-                    Controller.sendService1Response(request, 0, content);
+                    Controller.sendService1Response(request, 0, lastModifiedTime, content);
                 } else {
-                    Controller.sendService1Response(request, 1, content);
+                    Controller.sendService1Response(request, 1, lastModifiedTime, content);
                 }
                 break;
             case 2:
@@ -197,14 +198,16 @@ public class Controller {
      * Format:<br/>
      * - responseID (4 bytes)<br/>
      * - status (4 bytes)<br/>
+     * - timestamp (8 bytes)<br/>
      * - content length (4 bytes)<br/>
      * - content (variable length)<br/>
      * 
      * @param request The request packet
      * @param status  The status of the response (0 = error, 1 = success)
+     * @param timestamp The timestamp of the file
      * @param content The content of the response to be marshalled
      */
-    public static void sendService1Response(DatagramPacket request, int status, String content) {
+    public static void sendService1Response(DatagramPacket request, int status, long timestamp, String content) {
         ClientDetails clientDetails = Server.getClientDetails(request);
         int responseID = Server.getRequests().get(clientDetails);
         System.out.println("-------------- Response packet --------------");
@@ -213,12 +216,14 @@ public class Controller {
         // Data packet
         byte[] dataBuffer = Marshaller.marshal(responseID);
         dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        System.out.println("Timestamp: " + timestamp);
+        dataBuffer = Marshaller.appendLong(dataBuffer, timestamp);
         int contentLength = content.length();
         System.out.println("Content length: " + contentLength);
         dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
         System.out.println("Content: " + content);
         dataBuffer = Marshaller.appendString(dataBuffer, content);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -247,7 +252,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -276,7 +281,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -309,7 +314,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -338,7 +343,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Message: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -370,7 +375,7 @@ public class Controller {
                 dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
                 System.out.println("Content: " + content);
                 dataBuffer = Marshaller.appendString(dataBuffer, content);
-                Server.sendReply(responseID, request, dataBuffer, false);
+                Server.sendReply(responseID, request, dataBuffer, false, true);
             }
         }
     }
