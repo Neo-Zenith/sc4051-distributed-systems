@@ -23,6 +23,8 @@ public class Marshaller {
         int serviceID = Marshaller.unmarshalServiceID(input);
 
         switch (serviceID) {
+            case 0:
+                return unmarhsalService0(requestID, input);
             case 1:
                 return unmarshalService1(requestID, input);
             case 2:
@@ -59,6 +61,27 @@ public class Marshaller {
     public static int unmarshalServiceID(byte[] input) {
         // Convert next 4 bytes into service number
         return Marshaller.unmarshalInt(input, 4);
+    }
+
+    /**
+     * Unmarshal the input for Service 0<br>
+     * Format:<br>
+     * - 4 bytes for request ID<br>
+     * - 4 bytes for service ID<br>
+     * - 4 bytes for length of file path<br>
+     * - variable length for file path<br>
+     * @param requestID request ID
+     * @param input     byte array containing the request
+     * @return          ClientPacket object containing the request details for Service 0
+     */
+    public static ClientPacket unmarhsalService0(int requestID, byte[] input) {
+        // Convert the next 4 bytes into the length of the file path
+        int filePathLength = unmarshalInt(input, 8);
+
+        // Convert the next filePathLength bytes into the file path
+        String filePath = unmarshalString(input, 12, filePathLength);
+
+        return new ClientPacket(requestID, 0, filePath, new ClientPayload());
     }
 
     /**

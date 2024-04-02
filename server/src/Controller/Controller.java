@@ -70,6 +70,22 @@ public class Controller {
         int code;
 
         switch (serviceID) {
+            // Service 0 borrows the Service 1 class to read the last updated timestamp
+            case 0:
+                filePath = clientPacket.getFilePath();
+                System.out.println("------------------ INFO ---------------------");
+                System.out.println("Service: Get file last updated timestamp");
+                System.out.println("File path: " + filePath);
+                Service1 service1 = new Service1(filePath);
+                long lastModifiedTime = service1.readFileLastUpdatedTimestamp();
+                if (lastModifiedTime == -1) {
+                    message = "Error reading file. File not found.";
+                    Controller.sendService0Response(request, 0, lastModifiedTime, message);
+                } else {
+                    message = "File last updated timestamp retrieved.";
+                    Controller.sendService0Response(request, 1, lastModifiedTime, message);
+                }
+                break;
             case 1:
                 filePath = clientPacket.getFilePath();
                 offset = clientPacket.getClientPayload().getOffset();
@@ -79,9 +95,9 @@ public class Controller {
                 System.out.println("File path: " + filePath);
                 System.out.println("Offset: " + offset);
                 System.out.println("Number of bytes: " + numBytes);
-                Service1 service1 = new Service1(filePath, offset, numBytes);
+                service1 = new Service1(filePath, offset, numBytes);
                 String content = service1.readFromFile();
-                long lastModifiedTime = service1.readFileLastUpdatedTimestamp();
+                lastModifiedTime = service1.readFileLastUpdatedTimestamp();
                 System.out.println("Content: " + content);
                 if (content == null) {
                     content = "Error reading file. File not found.";
@@ -191,6 +207,39 @@ public class Controller {
             default:
                 break;
         }
+    }
+
+
+    /**
+     * Marshal the service 0's response before sending to the client<br/>
+     * Format:<br/>
+     * - responseID (4 bytes)<br/>
+     * - status (4 bytes)<br/>
+     * - timestamp (8 bytes)<br/>
+     * - message length (4 bytes)<br/>
+     * - message (variable length)<br/>
+     * @param request   The request packet
+     * @param status    The status of the response (0 = error, 1 = success)
+     * @param timestamp The timestamp of the file
+     * @param message   The message of the response to be marshalled
+     */
+    public static void sendService0Response(DatagramPacket request, int status, long timestamp, String message) {
+        ClientDetails clientDetails = Server.getClientDetails(request);
+        int responseID = Server.getRequests().get(clientDetails);
+        System.out.println("-------------- Response packet --------------");
+        System.out.println("Response ID: " + responseID);
+        System.out.println("Status: " + status);
+        // Data packet
+        byte[] dataBuffer = Marshaller.marshal(responseID);
+        dataBuffer = Marshaller.appendInt(dataBuffer, status);
+        System.out.println("Timestamp: " + timestamp);
+        dataBuffer = Marshaller.appendLong(dataBuffer, timestamp);
+        int messageLength = message.length();
+        System.out.println("Message length: " + messageLength);
+        dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
+        System.out.println("Message: " + message);
+        dataBuffer = Marshaller.appendString(dataBuffer, message);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
