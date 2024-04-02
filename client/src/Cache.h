@@ -2,6 +2,7 @@
 #define CACHE_H
 
 #include <chrono>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 
@@ -11,7 +12,10 @@
 struct CachedResponse {
     std::string content; /**< The content of the cached response. */
     std::chrono::time_point<std::chrono::system_clock>
-        expirationTime; /**< The expiration time of the cached response. */
+        lastValidated; /**< Time when cache entry was last validated. */
+    std::chrono::time_point<std::chrono::system_clock>
+        lastModifiedClient; /**< Time when cache entry was last modified at
+                               server. */
 };
 
 /**

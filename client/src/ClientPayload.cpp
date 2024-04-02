@@ -12,7 +12,7 @@ ClientPayload::ClientPayload() {}
  * @brief Constructor for ClientPayload class.
  * @param expirationTime The expiration time value to set.
  */
-ClientPayload::ClientPayload(long long expirationTime)
+ClientPayload::ClientPayload(unsigned long long expirationTime)
     : expirationTime(expirationTime) {}
 
 /**
@@ -47,7 +47,9 @@ int ClientPayload::getNumBytes() const { return numBytes; }
  * @brief Get the expiration time of the client payload.
  * @return The expiration time.
  */
-long long ClientPayload::getExpirationTime() const { return expirationTime; }
+unsigned long long ClientPayload::getExpirationTime() const {
+    return expirationTime;
+}
 
 /**
  * @brief Get the input string of the client payload.
@@ -73,7 +75,7 @@ void ClientPayload::setNumBytes(int numBytes) { this->numBytes = numBytes; }
  * @brief Set the expiration time of the client payload.
  * @param expirationTime The expiration time to set.
  */
-void ClientPayload::setExpirationTime(long long expirationTime) {
+void ClientPayload::setExpirationTime(unsigned long long expirationTime) {
     this->expirationTime = expirationTime;
 }
 

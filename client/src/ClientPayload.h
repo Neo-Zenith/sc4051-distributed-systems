@@ -13,7 +13,7 @@
 class ClientPayload {
     int offset;
     int numBytes;
-    long long expirationTime;  // in minutes
+    unsigned long long expirationTime;  // in epoch
     std::string input;
 
    public:
@@ -28,7 +28,7 @@ class ClientPayload {
      *
      * @param expirationTime The expiration time in minutes.
      */
-    ClientPayload(long long expirationTime);
+    ClientPayload(unsigned long long expirationTime);
 
     /**
      * @brief Constructor for the ClientPayload class with a specified offset
@@ -67,7 +67,7 @@ class ClientPayload {
      *
      * @return The expiration time in minutes.
      */
-    long long getExpirationTime() const;
+    unsigned long long getExpirationTime() const;
 
     /**
      * @brief Get the input data.
@@ -102,7 +102,7 @@ class ClientPayload {
      *
      * @param expirationTime The expiration time in minutes to set.
      */
-    void setExpirationTime(long long expirationTime);
+    void setExpirationTime(unsigned long long expirationTime);
 };
 
 #endif  // CLIENT_PAYLOAD_H

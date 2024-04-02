@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <format>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -123,7 +124,6 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     CachedResponse* cachedResponse =
         cache->checkCache(filepath, offset, numBytes);
     if (cachedResponse != nullptr) {
-        std::cout << "\nCache hit!\n";
         std::cout << "Content: " << cachedResponse->content << "\n";
         return;
     }
@@ -170,9 +170,10 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
 
     int responseId = Marshaller::unmarshalInt(buffer, 0);
     int status = Marshaller::unmarshalInt(buffer, 4);
-    int contentLength = Marshaller::unmarshalInt(buffer, 8);
+    unsigned long long lastModified = Marshaller::unmarshalLongLong(buffer, 8);
+    int contentLength = Marshaller::unmarshalInt(buffer, 16);
     std::string content =
-        Marshaller::unmarshalString(buffer, 12, contentLength);
+        Marshaller::unmarshalString(buffer, 20, contentLength);
 
     std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
@@ -183,6 +184,7 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
         case 1:
             std::cout << "Status: Success\n";
             std::cout << "Content: " << content << "\n";
+            std::cout << "Last modified: " << lastModified << std::endl;
 
             // Update cache
             cache->insertIntoCache(filepath, offset, numBytes, content);
@@ -307,7 +309,7 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     //                            "%d-%m-%Y %H-%M-%S")
     //           << std::endl;
 
-    long long expirationTime =
+    unsigned long long expirationTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             endTime.time_since_epoch())
             .count();
@@ -465,7 +467,7 @@ void ServiceHandler::service4(UDPWindowsSocket s, int* requestId) {
 
     int responseId = Marshaller::unmarshalInt(buffer, 0);
     int status = Marshaller::unmarshalInt(buffer, 4);
-    long long fileSize = Marshaller::unmarshalLong(buffer, 8);
+    long long fileSize = Marshaller::unmarshalLongLong(buffer, 8);
     int contentLength = Marshaller::unmarshalInt(buffer, 16);
     std::string content =
         Marshaller::unmarshalString(buffer, 20, contentLength);
