@@ -2,6 +2,10 @@ package src.services;
 
 import java.io.RandomAccessFile;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Service 1<br>
@@ -112,6 +116,21 @@ public class Service1 {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    /**
+     * Read the last updated timestamp of the file
+     * @return  The last updated timestamp of the file
+     */
+    public long readFileLastUpdatedTimestamp() {
+        Path filePath = Paths.get(this.filePath);
+        try {
+            BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+            return attr.lastModifiedTime().toMillis();
+        } catch (IOException e) {
+            System.err.println("Unable to read file attributes: " + e.getMessage());
+            return -1;
+        }             
     }
 
     /**
