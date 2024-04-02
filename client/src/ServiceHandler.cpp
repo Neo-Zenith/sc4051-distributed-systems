@@ -214,7 +214,8 @@ void ServiceHandler::service2(UDPWindowsSocket s, int* requestId) {
     std::cin >> offset;
 
     std::cout << "Enter the characters to be inserted: ";
-    std::cin >> input;
+    std::cin.ignore();
+    std::getline(std::cin, input);
 
     // Create the payload
     ClientPayload payload(offset, input);
