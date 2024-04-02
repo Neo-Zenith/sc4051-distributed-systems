@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <ctime>
-#include <format>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -122,7 +121,7 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
 
     // Check cache
     CachedResponse* cachedResponse =
-        cache->checkCache(filepath, offset, numBytes);
+        cache->checkCache(filepath, offset, numBytes, s, requestId);
     if (cachedResponse != nullptr) {
         std::cout << "Content: " << cachedResponse->content << "\n";
         return;
@@ -175,6 +174,8 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
     std::string content =
         Marshaller::unmarshalString(buffer, 20, contentLength);
 
+    std::time_t lastModified_time_t = static_cast<std::time_t>(lastModified);
+
     std::cout << "Response ID: " << responseId << "\n";
     switch (status) {
         case 0:
@@ -184,10 +185,11 @@ void ServiceHandler::service1(UDPWindowsSocket s, Cache* cache,
         case 1:
             std::cout << "Status: Success\n";
             std::cout << "Content: " << content << "\n";
-            std::cout << "Last modified: " << lastModified << std::endl;
+            std::cout << "Last modified: " << lastModified_time_t << std::endl;
 
             // Update cache
-            cache->insertIntoCache(filepath, offset, numBytes, content);
+            cache->insertIntoCache(filepath, offset, numBytes, content,
+                                   lastModified_time_t);
             break;
         default:
             std::cout << "Status: " << status << "\n";
@@ -304,10 +306,10 @@ void ServiceHandler::service3(UDPWindowsSocket s, int* requestId) {
     auto endTime_time_t = std::chrono::system_clock::to_time_t(endTime);
 
     // Requires C++ 13
-    // std::cout << "Expiration time: "
-    //           << std::put_time(std::localtime(&endTime_time_t),
-    //                            "%d-%m-%Y %H-%M-%S")
-    //           << std::endl;
+    std::cout << "Expiration time: "
+              << std::put_time(std::localtime(&endTime_time_t),
+                               "%d-%m-%Y %H-%M-%S")
+              << std::endl;
 
     unsigned long long expirationTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(

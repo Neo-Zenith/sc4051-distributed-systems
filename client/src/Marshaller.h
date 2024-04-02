@@ -17,6 +17,14 @@ class Marshaller {
      * @param clientPacket The ClientPacket object to be marshalled.
      * @return A vector of unsigned char containing the marshalled data.
      */
+    static std::vector<unsigned char> marshalClientPacketS0(
+        const ClientPacket& clientPacket);
+
+    /**
+     * @brief Marshals a ClientPacket object into a vector of unsigned char.
+     * @param clientPacket The ClientPacket object to be marshalled.
+     * @return A vector of unsigned char containing the marshalled data.
+     */
     static std::vector<unsigned char> marshalClientPacketS1(
         const ClientPacket& clientPacket);
 

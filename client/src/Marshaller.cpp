@@ -1,6 +1,28 @@
 #include "Marshaller.h"
 
 /**
+ * Marshals a ClientPacket into a byte array using the S0 format.
+ * @param clientPacket The ClientPacket to marshal.
+ * @return The marshaled byte array.
+ */
+std::vector<unsigned char> Marshaller::marshalClientPacketS0(
+    const ClientPacket& clientPacket) {
+    /*
+        FORMAT:
+        1. requestId (4 bytes)
+        2. serviceId (4 bytes)
+        3. filepath length (4 bytes)
+        4. filepath (variable length)
+     */
+    std::vector<unsigned char> byteArray;
+    byteArray = appendInt(byteArray, clientPacket.getRequestId());
+    byteArray = appendInt(byteArray, clientPacket.getServiceId());
+    byteArray = appendInt(byteArray, clientPacket.getFilepath().length());
+    byteArray = appendString(byteArray, clientPacket.getFilepath());
+    return byteArray;
+}
+
+/**
  * Marshals a ClientPacket into a byte array using the S1 format.
  * @param clientPacket The ClientPacket to marshal.
  * @return The marshaled byte array.
