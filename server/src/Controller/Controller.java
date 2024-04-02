@@ -57,7 +57,7 @@ public class Controller {
                 System.out.println(
                         "Request ID: " + requestID + " has been processed. Retrieve result from store instead.");
                 byte[] storedReply = Server.getReplyMessages(clientDetails).get(requestID);
-                Server.sendReply(requestID, request, storedReply, false);
+                Server.sendReply(requestID, request, storedReply, false, false);
                 return;
             }
         }
@@ -218,7 +218,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
         System.out.println("Content: " + content);
         dataBuffer = Marshaller.appendString(dataBuffer, content);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -247,7 +247,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -276,7 +276,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -309,7 +309,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Mesage: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -338,7 +338,7 @@ public class Controller {
         dataBuffer = Marshaller.appendInt(dataBuffer, messageLength);
         System.out.println("Message: " + message);
         dataBuffer = Marshaller.appendString(dataBuffer, message);
-        Server.sendReply(responseID, request, dataBuffer, true);
+        Server.sendReply(responseID, request, dataBuffer, true, false);
     }
 
     /**
@@ -370,7 +370,7 @@ public class Controller {
                 dataBuffer = Marshaller.appendInt(dataBuffer, contentLength);
                 System.out.println("Content: " + content);
                 dataBuffer = Marshaller.appendString(dataBuffer, content);
-                Server.sendReply(responseID, request, dataBuffer, false);
+                Server.sendReply(responseID, request, dataBuffer, false, true);
             }
         }
     }

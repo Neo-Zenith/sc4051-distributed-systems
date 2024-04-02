@@ -167,8 +167,9 @@ public class Server {
      * @param request       DatagramPacket encapsulating the client details
      * @param replyBuffer   Buffer containing the response data
      * @param storeReply    Boolean to indicate if the reply should be stored
+     * @param isBroadcast   Boolean to indicate if the reply is a broadcasted message
      */
-    public static void sendReply(int requestID, DatagramPacket request, byte[] replyBuffer, boolean storeReply) {
+    public static void sendReply(int requestID, DatagramPacket request, byte[] replyBuffer, boolean storeReply, boolean isBroadcast) {
         try {
             ClientDetails clientDetails = Server.getClientDetails(request);
             if (storeReply) {
@@ -177,7 +178,7 @@ public class Server {
             }
             
             // Simulate reply message lost from server to client
-            if (Controller.shouldTimeout()) {
+            if (!isBroadcast && Controller.shouldTimeout()) {
                 System.out.println("Simulating reply message lost from server to client");
                 System.out.println("Reply not sent");
                 return;
